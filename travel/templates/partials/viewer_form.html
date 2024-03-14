@@ -1,0 +1,11 @@
+<form hx-post="{% url 'create-viewer' pk=trip.pk %}" hx-target="#viewer-list" hx-swap="beforeend"
+    hx-on="htmx:afterRequest: this.remove()"
+    hx-trigger="click from:#submit-all">
+    <div class="row">
+        <div class="col-4 col-md-3">
+            <label for="{{ form.viewers.id_for_label }}">Email</label>
+            {{ form.viewers }}
+        </div>
+        
+    </div>
+</form>

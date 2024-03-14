@@ -1,0 +1,22 @@
+{% extends "travel/base.html" %}
+{% load crispy_forms_tags %} <!-- Load crispy forms -->
+{% block content %}
+    <div class="content-section">
+        <form method="POST">
+            {% csrf_token %}  {# Manually adding the CSRF protection #}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Login</legend>
+
+                {{ form|crispy }} {# We'll let the form render itself via the crispy filter #}
+            </fieldset>
+            <div class="form-group"> {# Adding the login button ourselves, rather than in the form #}
+                <button class="btn btn-outline-info" type="submit">Login</button>
+            </div>
+        </form>
+        <div class="border-top pt-3">
+            <small class="text-muted">
+                Need An Account? <a class="ml-2" href="{& url 'register' %}">Sign Up Now</a>
+            </small>
+        </div>
+    </div>
+{% endblock content %}

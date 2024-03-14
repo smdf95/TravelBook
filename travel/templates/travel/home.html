@@ -1,0 +1,38 @@
+{% extends "travel/base.html" %}
+    {% block content %}
+    <div class="row">
+        <div class="col">
+            <h1 class="mb-5">TravelBook</h1>
+        </div>
+        <div class="col text-end">
+            <span class="material-symbols-outlined" style="cursor: pointer;">
+                filter_list
+            </span>
+        </div>
+    </div>
+
+    {% load crispy_forms_tags %}
+    <div class="row filter_list">
+        <div class="col">
+            <form method="GET">
+                {% csrf_token %}
+                <fieldset class="form-group">
+                    {{ filter.form|crispy }}
+                </fieldset>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="container">
+        {% for trip in filter.qs %}
+            <h2><a href="{% url 'travel-detail' trip.id %}">{{ trip.title }}</a></h2>
+        {% endfor %}
+    </div>
+
+    <span class="material-symbols-outlined add" data-url="{% url 'travel-create' %}" onclick="redirectToUrl(this)">
+        add_circle
+    </span>
+
+    {% endblock content %}

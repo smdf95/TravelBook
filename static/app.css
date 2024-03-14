@@ -1,0 +1,27 @@
+.filter_list {
+    display: none;
+}
+
+.material-symbols-outlined, .pointer {
+    cursor: pointer;
+}
+
+.material-symbols-outlined.add {
+    position: absolute;
+    bottom: 20px;
+    right: 35px;
+    font-size: 50px;
+    color: #06367A;
+    cursor: pointer;
+    text-shadow: #777777 2px 2px 5px;
+    transition: all 200ms ease-in-out;
+}
+
+.material-symbols-outlined.add:hover {
+    font-size: 60px;
+    bottom: 25px;
+    right: 30px;
+    text-shadow: #777777 4px 4px 7px;
+    transition: all 200ms ease-in-out;
+
+}

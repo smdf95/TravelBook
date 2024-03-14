@@ -1,0 +1,24 @@
+{% extends "travel/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="content-section">
+    <div class="media">
+        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ user.profile.image.url }}" width="200" height="200">
+        <div class="media-body">
+            <h2 class="account-heading">{{ user.profile.f_name }} {{ user.profile.l_name }} ({{ user.username }})</h2>
+            <p class="text-secondary">{{ user.email }}</p>
+        </div>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Profile Info</legend>
+            {{ u_form|crispy }}
+            {{ p_form|crispy }}
+        </fieldset>
+        <div class="form-group">
+            <button class="btn btn-outline-info" type="submit">Update</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

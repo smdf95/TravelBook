@@ -1,0 +1,25 @@
+{% extends 'travel/base.html' %}
+
+{% block content %}
+    <h1 class="mb-4 text-primary">Add Travel Companions</h1>
+
+    <div id="traveller-form">
+        {% include 'partials/traveller_form.html' %}
+    </div>
+
+    <div class="my-4">
+        <button type="button" class="btn btn-success me-2" 
+        hx-get="{% url 'create-traveller' pk=trip.id %}"
+        hx-target="#traveller-form"
+        hx-swap="beforeend">+ Add Another Companion</button>
+
+        <button tupe="button" class="btn btn-primary" id="submit-all">Submit All</button>
+    </div>
+
+    <ul id="traveller-list" class="list-group">
+        {% for traveller in travellers %}
+            {% include 'partials/traveller.html' %}
+        {% endfor %}
+    </ul>
+
+{% endblock %}
