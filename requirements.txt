@@ -8,3 +8,4 @@ Pillow==10.2.0
 crispy_bootstrap5
 django-filter
 psycopg
+whitenoise
