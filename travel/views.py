@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
@@ -15,13 +16,15 @@ from .forms import TripCreateForm, AddTravellerForm, AddViewerForm
 # Create your views here.
 
 def home(request):
-    print()
     
     return render(request, 'travel/home.html')
 
 class TripListView(LoginRequiredMixin, ListView):
     model = Trip
     template_name = 'travel/home.html'
+    allowed_hosts = os.environ.get('ALLOWED_HOSTS')
+
+    print('ALLOWED_HOSTS:', allowed_hosts)
     
     def get_queryset(self):
         # Filter Trips based on the logged-in user
@@ -34,6 +37,8 @@ class TripListView(LoginRequiredMixin, ListView):
     
 class TripDetailView(DetailView):
     model = Trip
+    print('Hello')
+
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
