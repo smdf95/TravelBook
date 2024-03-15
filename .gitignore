@@ -1,0 +1,7 @@
+.coverage
+htmlcov/
+.env
+__pycache__/
+db.sqlite3
+media/profile_pics/
+staticfiles/
