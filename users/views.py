@@ -1,7 +1,11 @@
+import requests
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import DeleteView
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 
 # Create your views here.
@@ -39,8 +43,19 @@ def profile(request):
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=request.user.profile)
 
+
     context = {
         'u_form': u_form,
         'p_form': p_form
     }
     return render(request, 'users/profile.html', context)
+
+class DeleteAccount(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = User
+    success_url = '/'
+
+    template_name = 'users/user_confirm_delete.html'
+
+    def test_func(self):
+        user_to_delete = self.get_object()
+        return self.request.user == user_to_delete

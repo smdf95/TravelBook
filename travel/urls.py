@@ -9,6 +9,11 @@ from .views import (
     CreateTraveller,
     AddViewer,
     CreateViewer,
+    LeaveTrip,
+    PostCreateView,
+    PostDetailView,
+    PostLike,
+    PostDeleteView,
 )
 from . import views
 
@@ -20,6 +25,13 @@ urlpatterns = [
     path('trip/<int:pk>/delete', TripDeleteView.as_view(), name='travel-delete'),
     path('trip/<int:pk>/add_traveller', views.AddTraveller, name='add-traveller'),
     path('trip/<int:pk>/create-traveller', views.CreateTraveller, name='create-traveller'),
-    path('trip/<int:pk>/add_viewer', views.AddViewer, name='add-viewer'),
+    path('trip/<int:pk>/add-viewer', views.AddViewer, name='add-viewer'),
     path('trip/<int:pk>/create-viewer', views.CreateViewer, name='create-viewer'),
+    path('trip/<int:pk>/leave-trip', views.LeaveTrip, name='leave-trip'),
+    path('trip/<int:pk>/post/new', PostCreateView.as_view(), name='post-create'),
+    path('post/<int:pk>', PostDetailView.as_view(), name='post-detail'),
+    path('post/<int:pk>/like', PostLike.as_view(), name='post-like'),
+    path('post/<int:pk>/delete', PostDeleteView.as_view(), name='post-delete'),
+
+
 ]

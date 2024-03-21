@@ -1,0 +1,13 @@
+-[Complete]As a user, I want to be able to register, login, and logout
+-[Complete]As a user, I want to be able to reset my password
+-[Complete]As a user, I want to be able to view, update, and delete my profile
+
+-[Complete]As a traveller, I want to be able to view, create, update and delete my trips
+-As a traveller, I want to be able to invite travel companions and viewers to join my trips
+-As a traveller, I want to be able to view, create, update and delete my Posts
+-As a traveller, I want to be able to add pictures and videos to my trips (Cloudinary)
+-As a traveller, I want to add the location for an event (Google Places)
+
+-As a viewer, I want to be able to view posts from travellers
+-As a viewer, I want to be able to like and comment on posts
+-As a viewer, I want to be able to view the location of an event (Google Places + Google Maps)

@@ -1,19 +1,104 @@
 {% extends "travel/base.html" %}
 {% block content %}
-<h1>{{ trip.title }}</h1>
-<article class="media content-section">
+<div class="content-section">
+    <div class="d-flex">
+        <div class="p-2">
+            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ trip.image.url }}" width="200" height="200">
+        </div>
+        <div class="p-2 align-self-center d-flex">
+            <h1>{{ trip.title }}</h1>
+            {% for traveller in trip.travellers.all %}
+                <div class="trip_profile_picture {% if forloop.last %}last-img{% endif %}">
+                    <img src="{{ traveller.profile.image.url }}" alt="{{ traveller.profile.image}}">
+                </div>
+            {% endfor %}
+            
+        </div>
+    </div>
+
+
+    <article class="media content-section">
         <div class="media-body">
             <div class="article-metadata">
-                {% for traveller in trip.travellers.all %}
-                    <a class="mr-2" href="#">{{ traveller }}</a>
-                {% endfor %}
-                
-            <small class="text-muted">{{ trip.created_on|date:'dS, F, Y'}}</small>
+                <p>Travellers: {{ trip.travellers.count }}</p>
+                <p>Viewers: {{ trip.viewers.count }}</p>
+                <small class="text-muted">{{ trip.created_on|date:'dS, F, Y'}}</small>
+            </div>
         </div>
-     </div>
-</article>
-<a href="{% url 'travel-update' trip.id %}">Update</a>
-<a href="{% url 'travel-delete' trip.id %}">Delete Trip</a>
-<a href="{% url 'add-traveller' trip.id %}">Add Travel Companion</a>
-<a href="{% url 'add-viewer' trip.id %}">Share Trip</a>
+    </article>
+
+    <a href="{% url 'travel-update' trip.id %}">Update</a>
+    <a href="{% url 'travel-delete' trip.id %}">Delete Trip</a>
+    <a href="{% url 'add-traveller' trip.id %}">Add Travel Companion</a>
+    <a href="{% url 'add-viewer' trip.id %}">Share Trip</a>
+    <a href="{% url 'leave-trip' trip.id %}">Leave Trip</a>
+</div>
+
+{% if posts %}
+    {% for post in posts %}
+        <div class="card">
+            <div class="d-flex">
+                <div class="p-2">
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ post.created_by.profile.image.url }}" width="50" height="50">
+                </div>
+                <div class="p-2">
+                    <div>{{ post.created_by.profile.f_name }} {{ post.created_by.profile.l_name }}</div>
+                    <div class="text-muted"><small>
+                        {% if post.time_diff %}
+                            {{ post.time_diff }}
+                        {% else %}
+                            {{ post.created_on }}
+                        {% endif %}
+                    </small></div>
+                </div>
+                <div class="ms-auto p-2 d-flex">
+                    <span class="material-symbols-outlined">
+                    location_on
+                    </span>
+                    <p>{{ post.location }}</p>
+                </div>
+            </div>
+            <div class="d-flex justify-content-start p-3">
+
+                <p>{{ post.content }}</p>
+            </div>
+            
+            {% if post.image %}
+                <img style="object-fit: cover; object-position: center center;" src="{{ post.image.url }}" width="100" height="100">
+            {% endif %}
+            <div class="d-flex justify-content-around">
+                Likes: {{ post.likes.count }}
+            </div>
+            <div class="d-flex justify-content-around">
+                <div class="mr-auto p-2 d-flex pointer" data-url="{% url 'post-like' post.id %}" onclick="redirectToUrl(this)">
+                    {% if user in post.likes.all %}
+                        <span class="material-icons me-2" style="color: #4444FF; font-weight: 600;">
+                            thumb_up
+                        </span>
+                        <p style="color: #4444FF; font-weight: 600;">Like</p>
+                    {% else %}
+                        <span class="material-symbols-outlined me-2">
+                            thumb_up
+                        </span>
+                        <p>Like</p>
+                    {% endif %}
+                </div>
+                <div class="ml-auto p-2 d-flex pointer" data-url="{% url 'post-detail' pk=post.id %}" onclick="redirectToUrl(this)">
+                    <span class="material-symbols-outlined me-2">
+                        comment
+                    </span>
+                    <p>Comment</p>
+                </div>
+                
+            </div>
+        </div>
+        <a href="{% url 'post-delete' pk=post.id %}" class="btn btn-danger">Delete</a>
+    {% endfor %}
+{% endif %}
+
+<div class="add_container">
+    <span class="material-symbols-outlined add" data-url="{% url 'post-create' pk=trip.id %}" onclick="redirectToUrl(this)">
+        add_circle
+    </span>
+</div>
 {% endblock content %}
