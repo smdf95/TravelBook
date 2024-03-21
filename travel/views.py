@@ -215,6 +215,7 @@ class PostCreateView(CreateView):
 class PostDetailView(LoginRequiredMixin, DetailView):
     model = Post
     template_name = "travel/post_detail.html"
+    form_class = CommentForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -246,10 +247,62 @@ class PostDetailView(LoginRequiredMixin, DetailView):
             post.time_diff = None
 
         
-
+        
         context['post'] = post  # Add the post object to the context
 
+        comments = post.comments.all()
+        context['comments'] = comments
+        
+        for comment in comments:
+            time_diff = current_time - comment.created_on
+            
+            current_time = timezone.now()
+            time_diff = current_time - comment.created_on
+            
+            time_diff_hours = time_diff.total_seconds() / 3600
+            time_diff_minutes = time_diff.total_seconds() / 60
+            time_diff_days = time_diff.days
+            
+            if time_diff_minutes < 1:
+                comment.time_diff = "Just now"  # Display time difference in hours
+            elif time_diff_minutes < 2:
+                comment.time_diff = f"{int(time_diff_minutes)} minute ago"  # Display time difference in hours
+            elif time_diff_minutes < 60:
+                comment.time_diff = f"{int(time_diff_minutes)} minutes ago"  # Display time difference in hours
+            elif time_diff_hours < 2:
+                comment.time_diff = f"{int(time_diff_hours)} hour ago"  # Display time difference in hours
+            elif time_diff_hours <= 24:
+                comment.time_diff = f"{int(time_diff_hours)} hours ago"  # Display time difference in hours
+            elif time_diff_days == 1:
+                comment.time_diff = "Yesterday"
+            else:
+                comment.time_diff = None
+
+        if comments:
+            context['comment'] = comment
+
+            
+        
+
+        form = CommentForm()
+
+        context['form'] = form
+
         return context
+    
+    def post(self, request, *args, **kwargs):
+        post = self.get_object()  # Get the post object
+        form = self.form_class(request.POST)  # Initialize the form with POST data
+
+        if form.is_valid():  # Check if the form is valid
+            comment = form.save(commit=False)  # Save the form data to a new Comment object without committing to the database
+            comment.post = post  # Associate the comment with the current post
+            comment.created_by = request.user  # Set the comment's creator to the current user
+            comment.save()  # Save the comment to the database
+            return redirect('post-detail', pk=post.pk)  # Redirect to the post detail page
+            
+        # If form is invalid or if it's not a POST request, render the template with the form
+        return self.render_to_response(self.get_context_data(form=form))
     
 
 
@@ -282,6 +335,19 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def get_success_url(self):
         # Redirect to the trip detail page after successfully deleting the post
         return reverse_lazy('travel-detail', kwargs={'pk': self.object.trip_id})
+    
+class CommentLike(View):
+    def get(self, request, pk):
+        comment = get_object_or_404(Comment, id=pk)
+
+        
+        if comment.likes.filter(id=request.user.id).exists():
+            comment.likes.remove(request.user)
+        else:
+            comment.likes.add(request.user)
+
+       
+        return redirect('post-detail', pk=comment.post_id)
     
 
         

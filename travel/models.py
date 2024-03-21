@@ -104,6 +104,9 @@ class Comment(models.Model):
     def number_of_likes(self):
         return self.likes.count()
     
+    def get_absolute_url(self): # Change here
+        return reverse('post-detail', kwargs={'pk': self.post_id})
+    
 class Reply(models.Model):
     content = models.TextField()
     created_on = models.DateTimeField(auto_now_add=True)

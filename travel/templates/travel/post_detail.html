@@ -1,4 +1,5 @@
 {% extends "travel/base.html" %}
+{% load crispy_forms_tags %}
 {% block content %}
 <div class="card">
     <div class="d-flex">
@@ -34,7 +35,7 @@
         Likes: {{ post.likes.count }}
     </div>
     <div class="d-flex justify-content-around">
-        <div class="mr-auto p-2 d-flex pointer" data-url="{% url 'post-like' post.id %}" onclick="redirectToUrl(this)">
+        <div class="p-2 d-flex pointer" data-url="{% url 'post-like' post.id %}" onclick="redirectToUrl(this)">
             {% if user in post.likes.all %}
                 <span class="material-icons me-2" style="color: #4444FF; font-weight: 600;">
                     thumb_up
@@ -47,17 +48,65 @@
                 <p>Like</p>
             {% endif %}
         </div>
-        <div class="ml-auto p-2 d-flex pointer" data-url="{% url 'post-detail' pk=post.id %}" onclick="redirectToUrl(this)">
+        <div class="p-2 d-flex pointer comment-button">
             <span class="material-symbols-outlined me-2">
                 comment
             </span>
             <p>Comment</p>
         </div>
+    </div>
 </div>
 
+{% if comments %}
+    {% for comment in comments %}
+        <div class="card">
+            <div class="d-flex justify-content-start">
+                <div class="p-2">
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ comment.created_by.profile.image.url }}" width="50" height="50">
+                </div>
+                <div class="ms-4 align-self-center">
+                    <p class="fw-bold mb-1">{{ comment.created_by.profile.f_name }} {{ comment.created_by.profile.l_name }}</p>
+                    <p>{{ comment.content }}</p>
+                </div>
+                <p class="text-muted align-self-center ms-auto me-5">
+                    {% if comment.time_diff %}
+                        {{ comment.time_diff }}
+                    {% else %}
+                        {{ comment.created_on }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="d-flex justify-content-around">
+                <div class="ms-5 p-2 d-flex pointer" data-url="{% url 'comment-like' comment.id %}" onclick="redirectToUrl(this)">
+                {% if user in comment.likes.all %}
+                    <p style="color: #4444FF; font-weight: 600;;">Like</p>
+                {% else %}
+                    <p>Like</p>
+                {% endif %}
+                </div>
+                <div class="p-2">
+                    <p>Reply</p>
+                </div>
+                <p class="ms-auto me-5 p-2">Likes: {{ comment.likes.count }}</p>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
 
 
-<a href="{% url 'post-delete' pk=post.id %}" class="btn btn-danger">Delete</a>
 
+    <a href="{% url 'post-delete' pk=post.id %}" class="btn btn-danger">Delete</a>
+
+    <div class="content-section comment-form" style="display: none;">
+        <form method="POST"  enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                {{ form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-info" type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
 
 {% endblock content %}

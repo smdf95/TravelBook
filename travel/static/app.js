@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const filter = document.querySelector('.material-symbols-outlined');
+    const filter = document.querySelector('.material-symbols-outlined.filter');
     const filterList = document.querySelector('.filter_list');
 
-    filter.addEventListener('click', toggleFilterList);
+    if (filter && filterList) {
+        filter.addEventListener('click', toggleFilterList);
+    }
 
     function toggleFilterList() {
         // Check if filterList is currently visible
@@ -16,6 +18,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 })
+
+document.addEventListener('DOMContentLoaded', () => {
+    const commentButton = document.querySelector('.comment-button');
+    const commentForm = document.querySelector('.comment-form');
+
+    if (commentButton && commentForm) {
+        commentButton.addEventListener('click', toggleCommentForm);
+    }
+
+    function toggleCommentForm(event) {
+        event.preventDefault(); // Prevent the default behavior of the link
+
+        // Toggle the visibility of the comment form
+        if (commentForm.style.display === "block") {
+            commentForm.style.display = "none";
+        } else {
+            commentForm.style.display = "block";
+        }
+    }
+});
 
 
 function redirectToUrl(element) {

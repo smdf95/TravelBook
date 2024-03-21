@@ -73,6 +73,9 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['content']
+        labels = {
+            'content': 'Add Comment',
+        }
 
 class ReplyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
