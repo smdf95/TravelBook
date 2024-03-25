@@ -1,6 +1,6 @@
 <form 
-    hx-post="{% url 'add-comment' pk=post.pk %}" 
-    hx-target="#comment_list_{{ post.id }}"
+    hx-post="{% url 'add-comment' pk=post.id %}" 
+    hx-target="#comment_list"
     hx-on="htmx:afterRequest: this.remove()"
     hx-trigger="click from: #submit">
     {% csrf_token %}

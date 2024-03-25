@@ -220,7 +220,7 @@ class PostDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        post = self.object  # The post object is available as self.object
+        post = self.object
 
         current_time = timezone.now()
         time_diff = current_time - post.created_on
@@ -244,8 +244,7 @@ class PostDetailView(LoginRequiredMixin, DetailView):
         else:
             post.time_diff = None
 
-        context['post'] = post  # Add the post object to the context
-
+        context['post'] = post
         comments = post.comments.all()
         context['comments'] = comments
 
@@ -273,12 +272,8 @@ class PostDetailView(LoginRequiredMixin, DetailView):
 
             likes_count = comment.likes.count()
             comment.likes_count = likes_count
-            print('Likes: ', likes_count)
 
             replies = comment.replies.all()
-            context['replies'] = replies
-
-            comment.replies_with_details = []
 
             for reply in replies:
                 time_diff = current_time - reply.created_on
@@ -304,25 +299,17 @@ class PostDetailView(LoginRequiredMixin, DetailView):
 
                 reply_likes_count = reply.likes.count()
                 reply.likes_count = reply_likes_count
-                
-                
-                comment.replies_with_details.append(reply)
-            
-           
 
-            
+            comment.replies.set(replies)
 
         if comments:
-            context['comment'] = comments[0]  # Add the first comment to the context
+            context['comment'] = comments[0]
 
         form = CommentForm
-
         context['form'] = form
-        
-
-        
 
         return context
+
     
     def post(self, request, *args, **kwargs):
         post = self.get_object()  # Get the post object
@@ -383,6 +370,7 @@ def AddComment(request, pk):
             comment.save()
 
             comments = post.comments.all()
+            
             context = {'post': post, 'form': form, 'comments': comments}
             return render(request, 'partials/comment.html', context)
 
@@ -420,8 +408,10 @@ def DeleteComment(request, pk):
     post = instance.post
     instance.delete()
 
+    comments = post.comments.all()
 
-    return render(request, 'partials/comment.html', context={'comments':post.comments.all})
+
+    return render(request, 'partials/comment.html', context={'comments': comments})
 
 def AddReply(request, pk):
     

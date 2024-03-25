@@ -1,5 +1,5 @@
 <form 
-    hx-post="{% url 'add-reply' pk=comment.pk %}" 
+    hx-post="{% url 'add-reply' pk=comment.id %}" 
     hx-target="#reply_list_{{ comment.id }}"
     hx-on="htmx:afterRequest: this.remove()"
     hx-trigger="click from: #submit">

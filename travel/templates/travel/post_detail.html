@@ -51,7 +51,7 @@
     <div class="d-flex">
         {% if post.likes.count > 0 %}
             <div class="d-flex align-items-center">
-                <span class="material-icons me-2 counter me-auto ms-5"  style="color: #4444FF; font-weight: 600;">
+                <span class="material-icons me-2 counter me-auto ms-5" style="color: #4444FF; font-weight: 600;">
                     thumb_up
                 </span>
                 <p class="counter mb-1 ms-1">{{ post.likes.count }}</p>
@@ -124,7 +124,12 @@
 
 
 <!-- Comments List -->
-{% include 'partials/comment.html' %}
+<div id="comment_list">
+    {% if comments %}
+    <h2 class="mb-4">Comments</h2>
+    {% endif %}
+    {% include 'partials/comment.html' %}
+</div>
 
 
     <!-- Comment Form -->
