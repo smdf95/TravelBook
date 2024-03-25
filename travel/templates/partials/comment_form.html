@@ -1,0 +1,17 @@
+<form 
+    hx-post="{% url 'add-comment' pk=post.pk %}" 
+    hx-target="#comment_list_{{ post.id }}"
+    hx-on="htmx:afterRequest: this.remove()"
+    hx-trigger="click from: #submit">
+    {% csrf_token %}
+    {{ form.post_id }}
+    <div class="row">
+        <div class="col-4 col-md-3">
+            {{ form.content }}
+        </div>
+    </div>
+    <div class="form-group">
+        <button class="btn btn-outline-info" id="submit" type="submit">Submit</button>
+    </div>
+    
+</form>

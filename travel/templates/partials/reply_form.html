@@ -1,0 +1,16 @@
+<form 
+    hx-post="{% url 'add-reply' pk=comment.pk %}" 
+    hx-target="#reply_list_{{ comment.id }}"
+    hx-on="htmx:afterRequest: this.remove()"
+    hx-trigger="click from: #submit">
+    {% csrf_token %}
+    {{ reply_form.comment_id }}
+    <div class="row">
+        <div class="col-4 col-md-3">
+            {{ reply_form.content }}
+        </div>
+    </div>
+    <div class="form-group">
+        <button class="btn btn-outline-info" id="submit" type="submit">Submit</button>
+    </div>
+</form>

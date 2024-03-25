@@ -1,0 +1,65 @@
+{% if comments %}
+    <h2 class="mb-4">Comments</h2>
+
+    {% for comment in comments %}
+        <div class="card mb-2 comment_{{ comment.id }}">
+
+            <!-- Commenter's profile picture, name, and comment timestamp -->
+
+            <div class="d-flex justify-content-start">
+                <div class="p-2">
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ comment.created_by.profile.image.url }}" width="50" height="50">
+                </div>
+                <div class="ms-4 align-self-center">
+                    <p class="fw-bold mb-1">{{ comment.created_by.profile.f_name }} {{ comment.created_by.profile.l_name }}</p>
+                    <p>{{ comment.content }}</p>
+                </div>
+                <p class="text-muted align-self-center ms-auto me-5">
+                    {% if comment.time_diff %}
+                        {{ comment.time_diff }}
+                    {% else %}
+                        {{ comment.created_on }}
+                    {% endif %}
+                </p>
+            </div>
+            
+            <!-- Like and reply buttons -->
+
+            <div class="d-flex justify-content-around">
+                <div class="ms-5 ps-3 p-2 d-flex pointer" style="font-size: 14px;" 
+                hx-post="{% url 'comment-like' comment.id %}"
+                hx-trigger="click"
+                hx-target=".like_comment_{{ comment.id }}"
+                hx-swap="innerHTML" id="like_button_{{ comment.id }}">
+                    {% include 'partials/likes_area.html' %}
+                </div>
+                <div class="ps-3 p-2"  style="font-size: 14px;">
+                    <p class="pointer" hx-get="{% url 'add-reply' pk=comment.id %}" hx-trigger="click" hx-target="#reply_form_{{ comment.id }}" hx-swap="outerHTML">Reply</p>
+                </div>
+
+            <!-- Likes counter -->
+
+                <div class="d-flex ms-auto me-5"
+                hx-get="{% url 'comment-like-count' comment.id %}"
+                hx-trigger="click from:#like_button_{{ comment.id }} delay:10ms"
+                hx-target=".counter_{{ comment.id }}"
+                hx-swap="text">
+                    {% include 'partials/likes_counter.html' %}
+                </div>
+            </div>
+            <p class="pointer" 
+            hx-delete="{% url 'comment-delete' comment.id %}"
+            hx-trigger="click"
+            hx-target=".comment_{{ comment.id }}"
+            hx-confirm="Are you sure you want to delete this reply?"
+            >Delete</p>
+        </div>
+        
+        <div id="reply_form_{{ comment.id }}">
+            
+        </div>
+        <div id="reply_list_{{ comment.id }}">
+            {% include 'partials/reply.html' with replies=comment.replies.all %}
+        </div>
+        {% endfor %}
+{% endif %}

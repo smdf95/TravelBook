@@ -10,3 +10,4 @@ class TripFilter(django_filters.FilterSet):
             'title': ['icontains'],
             'created_on': ['exact'],
         }
+        

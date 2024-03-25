@@ -69,3 +69,16 @@
     border-radius: 35%;
     display: flex;
 }
+
+.counter {
+    font-size: 16px;
+}
+
+.delete_div:hover {
+    color: red;
+}
+
+.post_image {
+    max-width: 300px;
+    max-height: 300px;
+}

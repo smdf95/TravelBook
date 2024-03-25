@@ -1,6 +1,13 @@
 {% extends "travel/base.html" %}
 {% block content %}
+
+<!-- Trip Details -->
+
 <div class="content-section">
+
+
+    <!-- Picture, Title, and Travellers -->
+
     <div class="d-flex">
         <div class="p-2">
             <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ trip.image.url }}" width="200" height="200">
@@ -12,10 +19,10 @@
                     <img src="{{ traveller.profile.image.url }}" alt="{{ traveller.profile.image}}">
                 </div>
             {% endfor %}
-            
         </div>
     </div>
 
+    <!-- Travellers and Viewers Count -->
 
     <article class="media content-section">
         <div class="media-body">
@@ -27,6 +34,9 @@
         </div>
     </article>
 
+
+    <!-- Trip Settings -->
+
     <a href="{% url 'travel-update' trip.id %}">Update</a>
     <a href="{% url 'travel-delete' trip.id %}">Delete Trip</a>
     <a href="{% url 'add-traveller' trip.id %}">Add Travel Companion</a>
@@ -34,10 +44,17 @@
     <a href="{% url 'leave-trip' trip.id %}">Leave Trip</a>
 </div>
 
+
+<!-- Posts List -->
+
 {% if posts %}
     {% for post in posts %}
+
         <div class="card">
             <div class="d-flex">
+
+                <!-- Poster Profile Picture, Name, and Timestamp -->
+
                 <div class="p-2">
                     <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ post.created_by.profile.image.url }}" width="50" height="50">
                 </div>
@@ -51,6 +68,9 @@
                         {% endif %}
                     </small></div>
                 </div>
+
+                <!-- Location  -->
+
                 <div class="ms-auto p-2 d-flex">
                     <span class="material-symbols-outlined">
                     location_on
@@ -58,19 +78,46 @@
                     <p>{{ post.location }}</p>
                 </div>
             </div>
-            <div class="d-flex justify-content-start p-3">
 
-                <p>{{ post.content }}</p>
+            <!-- Post Content and Images -->
+
+            <div class="col d-flex p-3">
+                <div class="justify-content-start">
+                    <p>{{ post.content }}</p>
+                </div>
+            </div>
+            <div class="justify-content-center ms-auto me-auto">
+                {% if post.image %}
+                    <img style="object-fit: cover; object-position: center center;" src="{{ post.image.url }}" class="post_image">
+                {% endif %}
             </div>
             
-            {% if post.image %}
-                <img style="object-fit: cover; object-position: center center;" src="{{ post.image.url }}" width="100" height="100">
-            {% endif %}
-            <div class="d-flex justify-content-around">
-                Likes: {{ post.likes.count }}
+            <!-- Likes and comments counter -->
+
+            <div class="d-flex">
+                {% if post.likes.count > 0 %}
+                    <div class="d-flex align-items-center">
+                        <span class="material-icons me-2 counter me-auto ms-5"  style="color: #4444FF; font-weight: 600;">
+                            thumb_up
+                        </span>
+                        <p class="counter mb-1 ms-1">{{ post.likes.count }}</p>
+                    </div>
+                {% endif %}
+                {% if post.comments.count > 0 %}
+                    <div class="d-flex align-items-center ms-auto me-5">
+                        <p class="counter mb-1">{{ post.comments.count}} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
+                    </div>
+                {% endif %}
             </div>
+
+            <!-- Like and comment buttons -->
+
             <div class="d-flex justify-content-around">
                 <div class="mr-auto p-2 d-flex pointer" data-url="{% url 'post-like' post.id %}" onclick="redirectToUrl(this)">
+
+
+                    <!-- Change style based on whether user has liked the post or not -->
+
                     {% if user in post.likes.all %}
                         <span class="material-icons me-2" style="color: #4444FF; font-weight: 600;">
                             thumb_up
@@ -83,18 +130,39 @@
                         <p>Like</p>
                     {% endif %}
                 </div>
+
                 <div class="ml-auto p-2 d-flex pointer" data-url="{% url 'post-detail' pk=post.id %}" onclick="redirectToUrl(this)">
                     <span class="material-symbols-outlined me-2">
                         comment
                     </span>
                     <p>Comment</p>
                 </div>
-                
+
+
+                <!-- Delete button if post was created by user -->
+
+                {% if post.created_by == user %}
+
+                    <!-- Delete button changes style on hover -->
+
+                    <div class="delete_div p-2 d-flex pointer" 
+                        onmouseover="changeIcon(this, 'delete')"
+                        onmouseout="changeIcon(this, 'delete_outline')">
+                        <span class="material-icons pointer me-1" 
+                            data-url="{% url 'post-delete' post.id %}" 
+                            onclick="redirectToUrl(this)">
+                            delete_outline
+                        </span>
+                        <p>Delete</p>
+                    </div>
+                {% endif %}
+
             </div>
         </div>
-        <a href="{% url 'post-delete' pk=post.id %}" class="btn btn-danger">Delete</a>
     {% endfor %}
 {% endif %}
+
+<!-- Add button for adding new Post -->
 
 <div class="add_container">
     <span class="material-symbols-outlined add" data-url="{% url 'post-create' pk=trip.id %}" onclick="redirectToUrl(this)">

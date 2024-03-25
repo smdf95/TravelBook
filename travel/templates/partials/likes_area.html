@@ -1,0 +1,8 @@
+
+    {% if user in comment.likes.all %}
+        <p class="m-0 pointer like_comment_{{ forloop.counter }}" data-counter="{{ forloop.counter }}" style="color: #4444FF; font-weight: 600;">Like</p>
+    {% else %}
+        <p class="m-0 pointer like_comment_{{ forloop.counter }}" data-counter="{{ forloop.counter }}" style="color: #000000; font-weight: 0;">Like</p>
+    {% endif %}
+    
+

@@ -14,7 +14,14 @@ from .views import (
     PostDetailView,
     PostLike,
     PostDeleteView,
+    AddComment,
     CommentLike,
+    CommentLikeCount,
+    DeleteComment,
+    AddReply,
+    ReplyLike,
+    ReplyLikeCount,
+    DeleteReply
 )
 from . import views
 
@@ -33,7 +40,17 @@ urlpatterns = [
     path('post/<int:pk>', PostDetailView.as_view(), name='post-detail'),
     path('post/<int:pk>/like', PostLike.as_view(), name='post-like'),
     path('post/<int:pk>/delete', PostDeleteView.as_view(), name='post-delete'),
-    path('post/<int:pk>/comment/like', CommentLike.as_view(), name='comment-like'),
+    path('post/<int:pk>/comment', views.AddComment, name='add-comment'),
+    path('comment/<int:pk>/like', views.CommentLike, name='comment-like'),
+    path('comment/<int:pk>/like_count', views.CommentLikeCount, name='comment-like-count'),
+    path('comment/<int:pk>/delete', views.DeleteComment, name='comment-delete'),
+    path('comment/<int:pk>/reply', views.AddReply, name='add-reply'),
+    path('reply/<int:pk>/like', views.ReplyLike, name='reply-like'),
+    path('reply/<int:pk>/like_count', views.ReplyLikeCount, name='reply-like-count'),
+    path('reply/<int:pk>/delete', views.DeleteReply, name='reply-delete'),
 
+]
 
+htmx_urlpatterns = [
+    
 ]

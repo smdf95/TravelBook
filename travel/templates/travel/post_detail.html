@@ -1,13 +1,19 @@
 {% extends "travel/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class="card">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<div class="card mb-5">
     <div class="d-flex">
+
+        <!-- Poster Profile Picture, Name, and Timestamp -->
+
         <div class="p-2">
             <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ post.created_by.profile.image.url }}" width="50" height="50">
         </div>
         <div class="p-2">
-            <div>{{ post.created_by.profile.f_name }} {{ post.created_by.profile.l_name }}</div>
+            <div class="fw-bold">{{ post.created_by.profile.f_name }} {{ post.created_by.profile.l_name }}</div>
             <div class="text-muted"><small>
                 {% if post.time_diff %}
                     {{ post.time_diff }}
@@ -16,6 +22,9 @@
                 {% endif %}
             </small></div>
         </div>
+
+        <!-- Location  -->
+
         <div class="ms-auto p-2 d-flex">
             <span class="material-symbols-outlined">
             location_on
@@ -23,19 +32,47 @@
             <p>{{ post.location }}</p>
         </div>
     </div>
-    <div class="d-flex justify-content-start p-3">
 
-        <p>{{ post.content }}</p>
+    <!-- Post Content and Images -->
+
+    <div class="col d-flex p-3">
+        <div class="justify-content-start">
+            <p>{{ post.content }}</p>
+        </div>
+    </div>
+    <div class="justify-content-center ms-auto me-auto">
+        {% if post.image %}
+            <img style="object-fit: cover; object-position: center center;" src="{{ post.image.url }}" class="post_image">
+        {% endif %}
     </div>
     
-    {% if post.image %}
-        <img style="object-fit: cover; object-position: center center;" src="{{ post.image.url }}" width="100" height="100">
-    {% endif %}
-    <div class="d-flex justify-content-around">
-        Likes: {{ post.likes.count }}
+    <!-- Likes and comments counter -->
+
+    <div class="d-flex">
+        {% if post.likes.count > 0 %}
+            <div class="d-flex align-items-center">
+                <span class="material-icons me-2 counter me-auto ms-5"  style="color: #4444FF; font-weight: 600;">
+                    thumb_up
+                </span>
+                <p class="counter mb-1 ms-1">{{ post.likes.count }}</p>
+            </div>
+        {% endif %}
+
+        {% if post.comments.count > 0 %}
+            <div class="d-flex align-items-center ms-auto me-5">
+                <p class="counter mb-1">{{ post.comments.count}} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
+            </div>
+        {% endif %}
     </div>
+
+    <!-- Like and comment buttons -->
+
     <div class="d-flex justify-content-around">
-        <div class="p-2 d-flex pointer" data-url="{% url 'post-like' post.id %}" onclick="redirectToUrl(this)">
+        <div class="mr-auto p-2 d-flex pointer" data-url="{% url 'post-like' post.id %}" onclick="redirectToUrl(this)">
+
+
+            <!-- Change style based on whether user has liked the post or not -->
+
             {% if user in post.likes.all %}
                 <span class="material-icons me-2" style="color: #4444FF; font-weight: 600;">
                     thumb_up
@@ -48,65 +85,69 @@
                 <p>Like</p>
             {% endif %}
         </div>
-        <div class="p-2 d-flex pointer comment-button">
+
+        <!-- Comment button opens and closes comment form -->
+
+        <div class="ml-auto p-2 d-flex pointer comment-button"
+        hx-get="{% url 'add-comment' pk=post.id %}" hx-trigger="click" hx-target="#comment_form" hx-swap="outerHTML">
             <span class="material-symbols-outlined me-2">
                 comment
             </span>
             <p>Comment</p>
         </div>
+
+
+        <!-- Delete button if post was created by user -->
+
+        {% if post.created_by == user %}
+
+            <!-- Delete button changes style on hover -->
+
+            <div class="delete_div p-2 d-flex pointer" 
+                onmouseover="changeIcon(this, 'delete')"
+                onmouseout="changeIcon(this, 'delete_outline')">
+                <span class="material-icons pointer me-1" 
+                    data-url="{% url 'post-delete' post.id %}" 
+                    onclick="redirectToUrl(this)">
+                    delete_outline
+                </span>
+                <p>Delete</p>
+            </div>
+        {% endif %}
+
     </div>
 </div>
 
-{% if comments %}
-    {% for comment in comments %}
-        <div class="card">
-            <div class="d-flex justify-content-start">
-                <div class="p-2">
-                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ comment.created_by.profile.image.url }}" width="50" height="50">
-                </div>
-                <div class="ms-4 align-self-center">
-                    <p class="fw-bold mb-1">{{ comment.created_by.profile.f_name }} {{ comment.created_by.profile.l_name }}</p>
-                    <p>{{ comment.content }}</p>
-                </div>
-                <p class="text-muted align-self-center ms-auto me-5">
-                    {% if comment.time_diff %}
-                        {{ comment.time_diff }}
-                    {% else %}
-                        {{ comment.created_on }}
-                    {% endif %}
-                </p>
-            </div>
-            <div class="d-flex justify-content-around">
-                <div class="ms-5 p-2 d-flex pointer" data-url="{% url 'comment-like' comment.id %}" onclick="redirectToUrl(this)">
-                {% if user in comment.likes.all %}
-                    <p style="color: #4444FF; font-weight: 600;;">Like</p>
-                {% else %}
-                    <p>Like</p>
-                {% endif %}
-                </div>
-                <div class="p-2">
-                    <p>Reply</p>
-                </div>
-                <p class="ms-auto me-5 p-2">Likes: {{ comment.likes.count }}</p>
-            </div>
-        </div>
-    {% endfor %}
-{% endif %}
+<div class="content-section" id="comment_form">
+    
+</div>
 
 
+<!-- Comments List -->
+{% include 'partials/comment.html' %}
 
-    <a href="{% url 'post-delete' pk=post.id %}" class="btn btn-danger">Delete</a>
 
-    <div class="content-section comment-form" style="display: none;">
-        <form method="POST"  enctype="multipart/form-data">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                {{ form|crispy }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-info" type="submit">Submit</button>
-            </div>
-        </form>
-    </div>
+    <!-- Comment Form -->
+
+
+    <script>
+        document.addEventListener("htmx:confirm", function(e) {
+            const target = e.target;
+            const deleteUrl = target.getAttribute("hx-delete");
+            
+            if (deleteUrl) {
+                e.preventDefault();
+                Swal.fire({
+                    title: "Delete comment?",
+                    text: `Are you sure you would like to delete this comment?`
+                }).then(function(result) {
+                    if(result.isConfirmed) {
+                        e.detail.issueRequest(true);  // use true to skip window.confirm
+                    }
+                });
+            }
+        });
+    </script>
 
 {% endblock content %}
+

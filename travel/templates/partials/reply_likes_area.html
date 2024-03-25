@@ -1,0 +1,8 @@
+
+{% if user in reply.likes.all %}
+    <p class="m-0 pointer like_reply_{{ reply.id }}" data-counter="{{ reply.id }}" style="color: #4444FF; font-weight: 600;">Unlike</p>
+{% else %}
+    <p class="m-0 pointer like_reply_{{ reply.id }}" data-counter="{{ reply.id }}" style="color: #000000; font-weight: 0;">Like</p>
+{% endif %}
+
+
