@@ -10,3 +10,4 @@ crispy_bootstrap5
 django-filter
 psycopg
 whitenoise
+requests
