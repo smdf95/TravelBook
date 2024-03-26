@@ -49,7 +49,7 @@ urlpatterns = [
     path('reply/<int:pk>/like', views.ReplyLike, name='reply-like'),
     path('reply/<int:pk>/like_count', views.ReplyLikeCount, name='reply-like-count'),
     path('reply/<int:pk>/delete', views.DeleteReply, name='reply-delete'),
-    path('map/<latitude>/<longitude>', views.show_map, name='maps')
+    path('map/<str:location>', views.show_map, name='maps')
 
 ]
 

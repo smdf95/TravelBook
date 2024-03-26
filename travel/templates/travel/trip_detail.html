@@ -76,7 +76,7 @@
                     location_on
                     </span>
                     {% if post.location %}
-                        <p><a href="{% url 'maps' post.latitude post.longitude %}">{{ post.location }}</a></p>
+                        <p><a href="{% url 'maps' post.location %}">{{ post.location }}</a></p>
                     {% else %}
                         <p>No location provided</p>
                     {% endif %}
@@ -149,12 +149,11 @@
 
                     <!-- Delete button changes style on hover -->
 
-                    <div class="delete_div p-2 d-flex pointer" 
+                    <div class="delete_div p-2 d-flex pointer" data-url="{% url 'post-delete' post.id %}" 
+                    onclick="redirectToUrl(this)"
                         onmouseover="changeIcon(this, 'delete')"
                         onmouseout="changeIcon(this, 'delete_outline')">
-                        <span class="material-icons pointer me-1" 
-                            data-url="{% url 'post-delete' post.id %}" 
-                            onclick="redirectToUrl(this)">
+                        <span class="material-icons pointer me-1">
                             delete_outline
                         </span>
                         <p>Delete</p>

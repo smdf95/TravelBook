@@ -29,7 +29,11 @@
             <span class="material-symbols-outlined">
             location_on
             </span>
-            <p>{{ post.location }}</p>
+            {% if post.location %}
+                <p><a href="{% url 'maps' post.location %}">{{ post.location }}</a></p>
+            {% else %}
+                <p>No location provided</p>
+            {% endif %}
         </div>
     </div>
 

@@ -1,4 +1,5 @@
 import os
+import requests
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -494,9 +495,22 @@ def DeleteReply(request, pk):
 
 
 @login_required
-def show_map(request, latitude, longitude):
-    context = {
-        'latitude': float(latitude),
-        'longitude': float(longitude),
-    }
-    return render(request, 'travel/map.html', context)
+def show_map(request, location):
+    
+    location_clean = location.replace(' ', '+')
+
+    location = location
+
+    # Use Google Maps Geocoding API to get latitude and longitude from the location name
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?address={location_clean}&key=AIzaSyDY3be2hUJrCXPUE-SAOCEAN8P0UjmB8lk"
+    response = requests.get(url)
+    data = response.json()
+
+    if data['status'] == 'OK':
+        latitude = data['results'][0]['geometry']['location']['lat']
+        longitude = data['results'][0]['geometry']['location']['lng']
+    else:
+        latitude = None
+        longitude = None
+
+    return render(request, 'travel/map.html', {'latitude': latitude, 'longitude': longitude, 'location': location})
