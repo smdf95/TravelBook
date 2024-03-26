@@ -15,8 +15,8 @@
         <div class="p-2">
             <div class="fw-bold">{{ post.created_by.profile.f_name }} {{ post.created_by.profile.l_name }}</div>
             <div class="text-muted"><small>
-                {% if post.time_diff %}
-                    {{ post.time_diff }}
+                {% if post_time_diff %}
+                    {{ post_time_diff }}
                 {% else %}
                     {{ post.created_on }}
                 {% endif %}

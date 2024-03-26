@@ -1,5 +1,4 @@
-{% if replies %}
-{% for reply in comment.replies.all %}
+{% for reply in replies %}
 
 <div class="">
 
@@ -21,6 +20,8 @@
                 {% else %}
                     {{ reply.created_on }}
                 {% endif %}
+
+
             </p>
         </div>
         
@@ -76,4 +77,3 @@
     });
 </script>
 {% endfor %}
-{% endif %}

@@ -1,0 +1,48 @@
+{% extends 'travel/base.html' %}
+
+{% block content %}
+
+
+
+
+<div id="map" style="height: 300px; width: 400px; display: none;"></div>
+
+<script>
+    function initialize() {
+        var mapOptions = {
+            zoom: 15,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        
+        var lat = "{{ latitude }}";
+        var lng = "{{ longitude }}";
+        var latlng = new google.maps.LatLng(parseFloat(lat), parseFloat(lng));
+
+        var marker = new google.maps.Marker({
+            position: latlng,
+            map: map
+        });
+
+        map.setCenter(latlng);
+    }
+
+    // Delay the map initialization until the Google Maps API is fully loaded
+    function loadMap() {
+        if (typeof google === 'undefined') {
+            setTimeout(loadMap, 100);
+        } else {
+            initialize();
+            document.getElementById('map').style.display = 'block';
+        }
+    }
+
+    // Load the Google Maps API
+    var script = document.createElement('script');
+    script.defer = true;
+    script.async = true;
+    script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDY3be2hUJrCXPUE-SAOCEAN8P0UjmB8lk&libraries=places&callback=loadMap";
+    document.body.appendChild(script);
+</script>
+
+{% endblock %}

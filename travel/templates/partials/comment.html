@@ -28,7 +28,7 @@
                 <div class="ms-5 ps-3 p-2 d-flex pointer" style="font-size: 14px;" 
                 hx-post="{% url 'comment-like' comment.id %}"
                 hx-trigger="click"
-                hx-target=".like_comment_{{ comment.id }}"
+                hx-target="this"
                 hx-swap="innerHTML" id="like_button_{{ comment.id }}">
                     {% include 'partials/likes_area.html' %}
                 </div>
@@ -58,7 +58,7 @@
             
         </div>
         <div id="reply_list_{{ comment.id }}">
-            {% include 'partials/reply.html' with replies=comment.replies.all %}
+            {% include 'partials/reply.html' with replies=comment.replies_list %}
         </div>
         {% endfor %}
 {% endif %}

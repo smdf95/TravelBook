@@ -15,6 +15,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.timesince import timesince
 from django.urls import reverse_lazy
+from geopy.geocoders import Nominatim
 from .models import Trip, Post, Comment, Reply
 from .filters import TripFilter
 from .forms import TripCreateForm, AddTravellerForm, AddViewerForm, PostCreateForm, CommentForm, ReplyForm
@@ -206,111 +207,74 @@ class PostCreateView(CreateView):
         post = form.save(commit=False)
         post.created_by = self.request.user
         post.trip = trip  # Assign the Trip instance, not the trip ID
-        post.save()
 
+        geolocator = Nominatim(user_agent="travel_app")
+        location = geolocator.geocode(post.location)
+        
+        if location:
+            post.latitude = location.latitude
+            post.longitude = location.longitude
+
+        post.save()
         
 
         
         return super().form_valid(form)
     
-class PostDetailView(LoginRequiredMixin, DetailView):
-    model = Post
+class PostView(LoginRequiredMixin, View):
     template_name = "travel/post_detail.html"
     form_class = CommentForm
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        post = self.object
+    def get(self, request, *args, **kwargs):
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])
 
         current_time = timezone.now()
-        time_diff = current_time - post.created_on
+
+        # Calculate time difference for the post
+        post_time_diff = self.calculate_time_diff(current_time, post.created_on)
+
+        comments_with_replies = []
+        # Calculate time difference for comments and replies
+        for comment in post.comments.all():
+            comment.time_diff = self.calculate_time_diff(current_time, comment.created_on)
+            comment.replies_list = []
+
+            for reply in comment.replies.all():
+                reply.time_diff = self.calculate_time_diff(current_time, reply.created_on)
+                comment.replies_list.append(reply)
+
+            comments_with_replies.append(comment)
+
+        context = {
+            'post': post,
+            'post_time_diff': post_time_diff,
+            'comments': comments_with_replies,
+            'form': self.form_class
+        }
+        return render(request, self.template_name, context)
+
+    def calculate_time_diff(self, current_time, target_time):
+        time_diff = current_time - target_time
 
         time_diff_hours = int(time_diff.total_seconds() / 3600)
         time_diff_minutes = int(time_diff.total_seconds() / 60)
         time_diff_days = time_diff.days
 
         if time_diff_minutes < 1:
-            post.time_diff = "Just now"
+            return "Just now"
         elif time_diff_minutes == 1:
-            post.time_diff = "1 minute ago"
+            return "1 minute ago"
         elif time_diff_minutes < 60:
-            post.time_diff = f"{time_diff_minutes} minutes ago"
+            return f"{time_diff_minutes} minutes ago"
         elif time_diff_hours == 1:
-            post.time_diff = "1 hour ago"
+            return "1 hour ago"
         elif time_diff_hours < 24:
-            post.time_diff = f"{time_diff_hours} hours ago"
+            return f"{time_diff_hours} hours ago"
         elif time_diff_days == 1:
-            post.time_diff = "Yesterday"
+            return "Yesterday"
         else:
-            post.time_diff = None
+            return None
 
-        context['post'] = post
-        comments = post.comments.all()
-        context['comments'] = comments
-
-        for comment in comments:
-            time_diff = current_time - comment.created_on
-
-            time_diff_hours = int(time_diff.total_seconds() / 3600)
-            time_diff_minutes = int(time_diff.total_seconds() / 60)
-            time_diff_days = time_diff.days
-
-            if time_diff_minutes < 1:
-                comment.time_diff = "Just now"
-            elif time_diff_minutes == 1:
-                comment.time_diff = "1 minute ago"
-            elif time_diff_minutes < 60:
-                comment.time_diff = f"{time_diff_minutes} minutes ago"
-            elif time_diff_hours == 1:
-                comment.time_diff = "1 hour ago"
-            elif time_diff_hours < 24:
-                comment.time_diff = f"{time_diff_hours} hours ago"
-            elif time_diff_days == 1:
-                comment.time_diff = "Yesterday"
-            else:
-                comment.time_diff = None
-
-            likes_count = comment.likes.count()
-            comment.likes_count = likes_count
-
-            replies = comment.replies.all()
-
-            for reply in replies:
-                time_diff = current_time - reply.created_on
-
-                time_diff_hours = int(time_diff.total_seconds() / 3600)
-                time_diff_minutes = int(time_diff.total_seconds() / 60)
-                time_diff_days = time_diff.days
-
-                if time_diff_minutes < 1:
-                    reply.time_diff = "Just now"
-                elif time_diff_minutes == 1:
-                    reply.time_diff = "1 minute ago"
-                elif time_diff_minutes < 60:
-                    reply.time_diff = f"{time_diff_minutes} minutes ago"
-                elif time_diff_hours == 1:
-                    reply.time_diff = "1 hour ago"
-                elif time_diff_hours < 24:
-                    reply.time_diff = f"{time_diff_hours} hours ago"
-                elif time_diff_days == 1:
-                    reply.time_diff = "Yesterday"
-                else:
-                    reply.time_diff = None
-
-                reply_likes_count = reply.likes.count()
-                reply.likes_count = reply_likes_count
-
-            comment.replies.set(replies)
-
-        if comments:
-            context['comment'] = comments[0]
-
-        form = CommentForm
-        context['form'] = form
-
-        return context
-
-    
     def post(self, request, *args, **kwargs):
         post = self.get_object()  # Get the post object
         form = self.form_class(request.POST)  # Initialize the form with POST data
@@ -324,7 +288,11 @@ class PostDetailView(LoginRequiredMixin, DetailView):
             
         # If form is invalid or if it's not a POST request, render the template with the form
         return self.render_to_response(self.get_context_data(form=form))
+
+
+
     
+
 
 
 class PostLike(View):
@@ -370,6 +338,34 @@ def AddComment(request, pk):
             comment.save()
 
             comments = post.comments.all()
+
+            current_time = timezone.now()
+
+            for comment in comments:
+                time_diff = current_time - comment.created_on
+
+                time_diff_hours = int(time_diff.total_seconds() / 3600)
+                time_diff_minutes = int(time_diff.total_seconds() / 60)
+                time_diff_days = time_diff.days
+
+                if time_diff_minutes < 1:
+                    comment.time_diff = "Just now"
+                elif time_diff_minutes == 1:
+                    comment.time_diff = "1 minute ago"
+                elif time_diff_minutes < 60:
+                    comment.time_diff = f"{time_diff_minutes} minutes ago"
+                elif time_diff_hours == 1:
+                    comment.time_diff = "1 hour ago"
+                elif time_diff_hours < 24:
+                    comment.time_diff = f"{time_diff_hours} hours ago"
+                elif time_diff_days == 1:
+                    comment.time_diff = "Yesterday"
+                else:
+                    comment.time_diff = None
+
+                likes_count = comment.likes.count()
+                comment.likes_count = likes_count
+                
             
             context = {'post': post, 'form': form, 'comments': comments}
             return render(request, 'partials/comment.html', context)
@@ -426,6 +422,36 @@ def AddReply(request, pk):
             reply.save()
 
             replies = comment.replies.all()
+            current_time = timezone.now()
+
+
+            for reply in replies:
+                time_diff = current_time - reply.created_on
+
+                time_diff_hours = int(time_diff.total_seconds() / 3600)
+                time_diff_minutes = int(time_diff.total_seconds() / 60)
+                time_diff_days = time_diff.days
+
+                if time_diff_minutes < 1:
+                    reply.time_diff = "Just now"
+                elif time_diff_minutes == 1:
+                    reply.time_diff = "1 minute ago"
+                elif time_diff_minutes < 60:
+                    reply.time_diff = f"{time_diff_minutes} minutes ago"
+                elif time_diff_hours == 1:
+                    reply.time_diff = "1 hour ago"
+                elif time_diff_hours < 24:
+                    reply.time_diff = f"{time_diff_hours} hours ago"
+                elif time_diff_days == 1:
+                    reply.time_diff = "Yesterday"
+                else:
+                    reply.time_diff = None
+
+                reply_likes_count = reply.likes.count()
+                reply.likes_count = reply_likes_count
+
+            comment.replies.set(replies)
+
             context = {'comment': comment, 'reply_form': reply_form, 'replies': replies}
             return render(request, 'partials/reply.html', context)
 
@@ -467,3 +493,10 @@ def DeleteReply(request, pk):
     return render(request, 'partials/reply.html', context={'replies':replies})
 
 
+@login_required
+def show_map(request, latitude, longitude):
+    context = {
+        'latitude': float(latitude),
+        'longitude': float(longitude),
+    }
+    return render(request, 'travel/map.html', context)

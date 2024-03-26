@@ -11,7 +11,7 @@ from .views import (
     CreateViewer,
     LeaveTrip,
     PostCreateView,
-    PostDetailView,
+    PostView,
     PostLike,
     PostDeleteView,
     AddComment,
@@ -21,7 +21,8 @@ from .views import (
     AddReply,
     ReplyLike,
     ReplyLikeCount,
-    DeleteReply
+    DeleteReply,
+    show_map
 )
 from . import views
 
@@ -37,7 +38,7 @@ urlpatterns = [
     path('trip/<int:pk>/create-viewer', views.CreateViewer, name='create-viewer'),
     path('trip/<int:pk>/leave-trip', views.LeaveTrip, name='leave-trip'),
     path('trip/<int:pk>/post/new', PostCreateView.as_view(), name='post-create'),
-    path('post/<int:pk>', PostDetailView.as_view(), name='post-detail'),
+    path('post/<int:pk>', PostView.as_view(), name='post-detail'),
     path('post/<int:pk>/like', PostLike.as_view(), name='post-like'),
     path('post/<int:pk>/delete', PostDeleteView.as_view(), name='post-delete'),
     path('post/<int:pk>/comment', views.AddComment, name='add-comment'),
@@ -48,6 +49,7 @@ urlpatterns = [
     path('reply/<int:pk>/like', views.ReplyLike, name='reply-like'),
     path('reply/<int:pk>/like_count', views.ReplyLikeCount, name='reply-like-count'),
     path('reply/<int:pk>/delete', views.DeleteReply, name='reply-delete'),
+    path('map/<latitude>/<longitude>', views.show_map, name='maps')
 
 ]
 

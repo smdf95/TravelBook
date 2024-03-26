@@ -51,6 +51,8 @@ class Post(models.Model):
     image = models.ImageField(upload_to='post_pics', blank=True)
     content = models.TextField(blank=True)
     location = models.CharField(max_length=200, blank=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True, editable=False)
     likes = models.ManyToManyField(User, related_name='post_likes', blank=True)
 

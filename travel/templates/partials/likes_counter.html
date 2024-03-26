@@ -3,7 +3,7 @@
         <span class="material-icons me-2 counter me-auto ms-5"  style="color: #4444FF; font-weight: 600;">
             thumb_up
         </span>
-        <p class="counter counter_{{ forloop.counter }} mb-1 ms-1"
-        >{{ comment.likes_count }}</p>
+        <p class="counter counter_{{ comment.id }} mb-1 ms-1"
+        >{% if comment.likes.count == 0 %}0{% else %}{{ comment.likes.count }}{% endif %}</p>
     </div>
 </div>

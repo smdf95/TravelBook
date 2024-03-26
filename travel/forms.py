@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
+from crispy_forms.layout import Submit, Layout, Field
 from .models import Trip, Post, Comment, Reply
 
 class TripCreateForm(forms.ModelForm):
@@ -53,11 +53,21 @@ class AddViewerForm(forms.ModelForm):
 
 class PostCreateForm(forms.ModelForm):
 
+    location = forms.CharField(
+        max_length=200, 
+        widget=forms.TextInput(attrs={'id': 'searchTextField'}),
+        required=False
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_method = 'POST'
-        self.helper.add_input(Submit('submit', 'Create'))
+        self.helper.layout = Layout(
+            Field('content', css_class='form-control'),
+            Field('image', css_class='form-control'),
+            Field('location', css_class='form-control', id='searchTextField'),
+            Submit('submit', 'Submit', css_class='btn btn-outline-info')
+        )
 
 
     class Meta:

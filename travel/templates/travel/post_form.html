@@ -2,17 +2,63 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-    <div class="content-section">
-        <form method="POST"  enctype="multipart/form-data">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">New Post</legend>
-                {{ form|crispy }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-info" type="submit">Submit</button>
-            </div>
-        </form>
-    </div>
-    
-{% endblock content %}
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDY3be2hUJrCXPUE-SAOCEAN8P0UjmB8lk&libraries=places" async defer></script>
+
+
+
+<script>
+    var map;
+    var service;
+    var infowindow;
+
+    function initialize() {
+        var dublin = new google.maps.LatLng(53.344367358005044, -6.270444536501158);
+        var mapOptions = {
+            zoom: 15,
+            center: dublin,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        
+        var input = document.getElementById('searchTextField');
+        var autocomplete = new google.maps.places.Autocomplete(input);
+        autocomplete.bindTo('bounds', map);
+
+        var marker = new google.maps.Marker({
+            map: map,
+            anchorPoint: new google.maps.Point(0, -29)
+        });
+
+        google.maps.event.addListener(autocomplete, 'place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);
+            }
+            marker.setPosition(place.geometry.location);
+            marker.setVisible(true);
+        });
+    }
+
+    window.addEventListener('load', initialize);
+</script>
+
+<div class="content-section">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">New Post</legend>
+            {{ form|crispy }}
+            <div id="map" style="height: 300px; width: 400px"></div>
+
+        </fieldset>
+        <div class="form-group">
+            <button class="btn btn-outline-info" type="submit">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
