@@ -1,0 +1,14 @@
+
+{% if user in post.likes.all %}
+    <span class="material-icons me-2 pointer like_post_{{ post.id }}" style="color: #4444FF; font-weight: 600;">
+        thumb_up
+    </span>
+    <p class="pointer" style="color: #4444FF; font-weight: 600;">Like</p>
+{% else %}
+    <span class="material-symbols-outlined me-2 pointer like_post_{{ post.id }}">
+        thumb_up
+    </span>
+    <p class="pointer">Like</p>
+{% endif %}
+
+

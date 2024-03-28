@@ -1,5 +1,6 @@
 {% extends "travel/base.html" %}
 {% block content %}
+{% load static %}
 
 <!-- Trip Details -->
 
@@ -10,14 +11,20 @@
 
     <div class="d-flex">
         <div class="p-2">
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ trip.image.url }}" width="200" height="200">
+            {% if trip.image %}
+                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ trip.image.url }}" width="200" height="200" alt="{{ trip.title }} Profile Picture">
+            {% else %}
+                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'trip_pics/default.png' %}" width="200" height="200" alt="{{ trip.title }} Profile Picture">
+            {% endif %}
         </div>
         <div class="p-2 align-self-center d-flex">
             <h1>{{ trip.title }}</h1>
             {% for traveller in trip.travellers.all %}
-                <div class="trip_profile_picture {% if forloop.last %}last-img{% endif %}">
-                    <img src="{{ traveller.profile.image.url }}" alt="{{ traveller.profile.image}}">
-                </div>
+                {% if traveller.profile.image %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ traveller.profile.image }}" width="50" height="50" alt="{{ traveller.profile.f_name }} Profile Picture">
+                {% else %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ traveller.profile.f_name }} Profile Picture">
+                {% endif %}
             {% endfor %}
         </div>
     </div>
@@ -37,8 +44,8 @@
 
     <!-- Trip Settings -->
 
-    <a href="{% url 'travel-update' trip.id %}">Update</a>
-    <a href="{% url 'travel-delete' trip.id %}">Delete Trip</a>
+    <a href="{% url 'trip-update' trip.id %}">Update</a>
+    <a href="{% url 'trip-delete' trip.id %}">Delete Trip</a>
     <a href="{% url 'add-traveller' trip.id %}">Add Travel Companion</a>
     <a href="{% url 'add-viewer' trip.id %}">Share Trip</a>
     <a href="{% url 'leave-trip' trip.id %}">Leave Trip</a>
@@ -56,7 +63,11 @@
                 <!-- Poster Profile Picture, Name, and Timestamp -->
 
                 <div class="p-2">
-                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ post.created_by.profile.image.url }}" width="50" height="50">
+                    {% if post.created_by.profile.image %}
+                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ post.created_by.profile.image }}" width="50" height="50" alt="{{ post.created_by.profile.f_name }} Profile Picture">
+                    {% else %}
+                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ post.created_by.profile.f_name }} Profile Picture">
+                    {% endif %}
                 </div>
                 <div class="p-2">
                     <div>{{ post.created_by.profile.f_name }} {{ post.created_by.profile.l_name }}</div>
@@ -92,7 +103,7 @@
             </div>
             <div class="justify-content-center ms-auto me-auto">
                 {% if post.image %}
-                    <img style="object-fit: cover; object-position: center center;" src="{{ post.image.url }}" class="post_image">
+                    <img style="object-fit: cover; object-position: center center;" src="{{ post.image }}" class="post_image">
                 {% endif %}
             </div>
             
@@ -109,7 +120,7 @@
                 {% endif %}
                 {% if post.comments.count > 0 %}
                     <div class="d-flex align-items-center ms-auto me-5">
-                        <p class="counter mb-1">{{ post.comments.count}} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
+                        <p class="counter mb-1">{{ post.comments_num }} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
                     </div>
                 {% endif %}
             </div>

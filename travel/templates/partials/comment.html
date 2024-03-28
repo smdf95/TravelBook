@@ -1,3 +1,5 @@
+{% load static %}
+
 {% if comments %}
 
     {% for comment in comments %}
@@ -7,7 +9,11 @@
 
             <div class="d-flex justify-content-start">
                 <div class="p-2">
-                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ comment.created_by.profile.image.url }}" width="50" height="50">
+                    {% if comment.created_by.profile.image %}
+                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ comment.created_by.profile.image }}" width="50" height="50" alt="{{ comment.created_by.profile.f_name }} Profile Picture">
+                    {% else %}
+                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ comment.created_by.profile.f_name }} Profile Picture">
+                    {% endif %}
                 </div>
                 <div class="ms-4 align-self-center">
                     <p class="fw-bold mb-1">{{ comment.created_by.profile.f_name }} {{ comment.created_by.profile.l_name }}</p>
@@ -60,5 +66,10 @@
         <div id="reply_list_{{ comment.id }}">
             {% include 'partials/reply.html' with replies=comment.replies_list %}
         </div>
+        <div class="like_list like_list_{{ comment.id }} d-none position-fixed top-50 start-50 translate-middle">
+
+        </div>
         {% endfor %}
 {% endif %}
+
+

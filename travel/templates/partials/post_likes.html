@@ -1,0 +1,34 @@
+{% load static %}
+<div class="like_list post_like_list_{{ post.id }} position-fixed top-50 start-50 translate-middle d-flex flex-column">
+    <div class="d-flex">
+
+        <h3 class="p-2">Likes</h3>
+        <span class="material-icons pointer justify ms-auto p-2"
+            hx-get="{% url 'post-detail' post.id %}"
+            hx-target=".body"
+            hx-swap="outerHTML">
+            close
+        </span>
+    </div>
+    <div class="d-flex flex-column">
+        
+        {% for like in likes %}
+        <div class="d-flex justify-content-start align-items-center">
+            <div class="p-2">
+                {% if like.profile.image %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ like.profile.image }}" width="50" height="50" alt="{{ like.profile.f_name }} Profile Picture">
+                {% else %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ like.profile.f_name }} Profile Picture">
+                {% endif %}
+    
+            </div>
+            <div class="p-2">
+                {{ like.profile.f_name }} {{ like.profile.l_name }}
+            </div>
+        </div>
+            {% empty %}
+                <p>No likes yet</p>
+            {% endfor %}
+    </div>
+
+</div>  

@@ -27,11 +27,11 @@
     </div>
     <div class="container">
         {% for trip in filter.qs %}
-            <h2><a href="{% url 'travel-detail' trip.id %}">{{ trip.title }}</a></h2>
+            <h2><a href="{% url 'trip-detail' trip.id %}">{{ trip.title }}</a></h2>
         {% endfor %}
     </div>
 
-    <span class="material-symbols-outlined add" data-url="{% url 'travel-create' %}" onclick="redirectToUrl(this)">
+    <span class="material-symbols-outlined add" data-url="{% url 'trip-create' %}" onclick="redirectToUrl(this)">
         add_circle
     </span>
 

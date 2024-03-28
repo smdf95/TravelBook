@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field
 from .models import Trip, Post, Comment, Reply
+import cloudinary
+from cloudinary.forms import CloudinaryFileField
 
 class TripCreateForm(forms.ModelForm):
 
@@ -16,6 +18,33 @@ class TripCreateForm(forms.ModelForm):
     class Meta:
         model = Trip
         fields = ['title', 'image']
+
+    def save(self, commit=True):
+        instance = super(TripCreateForm, self).save(commit=False)
+
+        if 'image' in self.cleaned_data:
+            try:
+                # Reset the file pointer to the beginning of the file
+                self.cleaned_data['image'].file.seek(0)
+
+                # Pass the file content to Cloudinary uploader and set public_id
+                uploaded_image = cloudinary.uploader.upload(
+                    self.cleaned_data['image'].file.read(),
+                    public_id=f"trip_pics/{self.cleaned_data['image'].name.split('/')[-1].split('.')[0]}"
+                )
+
+
+                instance.image = uploaded_image['secure_url']
+
+                if commit:
+                    instance.save()
+
+
+            except Exception as e:
+                print(f"Error in cloudinary upload: {e}")
+
+        
+        return instance
 
 class AddTravellerForm(forms.ModelForm):
     travellers = forms.EmailField(label='Traveller Email', widget=forms.EmailInput(attrs={'class': 'form-control'}))
@@ -74,11 +103,45 @@ class PostCreateForm(forms.ModelForm):
         model = Post
         fields = ['content', 'image', 'location']
 
+    def save(self, commit=True):
+        instance = super(PostCreateForm, self).save(commit=False)
+
+        if 'image' in self.cleaned_data:
+            try:
+                # Reset the file pointer to the beginning of the file
+                self.cleaned_data['image'].file.seek(0)
+
+                # Pass the file content to Cloudinary uploader and set public_id
+                uploaded_image = cloudinary.uploader.upload(
+                    self.cleaned_data['image'].file.read(),
+                    public_id=f"post_pics/{self.cleaned_data['image'].name.split('/')[-1].split('.')[0]}"
+                )
+
+
+                instance.image = uploaded_image['secure_url']
+
+                if commit:
+                    instance.save()
+
+
+            except Exception as e:
+                print(f"Error in cloudinary upload: {e}")
+
+        
+        return instance
+
 class CommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'POST'
+        self.fields['content'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter your comment here...',
+            'rows': 4,
+            'cols': 250,
+            'style': 'resize:none;'
+        })
 
     class Meta:
         model = Comment
@@ -93,10 +156,18 @@ class ReplyForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_method = 'POST'
         self.helper.add_input(Submit('submit', 'Submit'))
+        self.fields['content'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter your reply here...',
+            'rows': 2,
+            'cols': 150,
+            'style': 'resize:none;'
+        })
 
     class Meta:
         model = Reply
         fields = ['content']
+       
 
     
         

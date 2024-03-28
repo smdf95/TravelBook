@@ -21,11 +21,36 @@ from .models import Trip, Post, Comment, Reply
 from .filters import TripFilter
 from .forms import TripCreateForm, AddTravellerForm, AddViewerForm, PostCreateForm, CommentForm, ReplyForm
 
-# Create your views here.
+# Function for calculating time difference between when post/comment/reply was created and when the user is viewing it
+
+def calculate_time_diff(current_time, target_time):
+    time_diff = current_time - target_time
+
+    time_diff_hours = int(time_diff.total_seconds() / 3600)
+    time_diff_minutes = int(time_diff.total_seconds() / 60)
+    time_diff_days = time_diff.days
+
+    if time_diff_minutes < 1:
+        return "Just now"
+    elif time_diff_minutes == 1:
+        return "1 minute ago"
+    elif time_diff_minutes < 60:
+        return f"{time_diff_minutes} minutes ago"
+    elif time_diff_hours == 1:
+        return "1 hour ago"
+    elif time_diff_hours < 24:
+        return f"{time_diff_hours} hours ago"
+    elif time_diff_days == 1:
+        return "Yesterday"
+    else:
+        return None
 
 def home(request):
     
     return render(request, 'travel/home.html')
+
+
+# Trips views
 
 class TripListView(LoginRequiredMixin, ListView):
     model = Trip
@@ -54,31 +79,29 @@ class TripDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         posts = self.object.posts.all().order_by('-created_on')
         context['posts'] = posts
 
+        current_time = timezone.now()
+
         for post in posts:
-            current_time = timezone.now()
-            time_diff = current_time - post.created_on
-            
-            time_diff_hours = time_diff.total_seconds() / 3600
-            time_diff_minutes = time_diff.total_seconds() / 60
-            time_diff_days = time_diff.days
-            
-            if time_diff_minutes < 1:
-                post.time_diff = "Just now"  # Display time difference in hours
-            elif time_diff_minutes < 2:
-                post.time_diff = f"{int(time_diff_minutes)} minute ago"  # Display time difference in hours
-            elif time_diff_minutes < 60:
-                post.time_diff = f"{int(time_diff_minutes)} minutes ago"  # Display time difference in hours
-            elif time_diff_hours < 2:
-                post.time_diff = f"{int(time_diff_hours)} hour ago"  # Display time difference in hours
-            elif time_diff_hours <= 24:
-                post.time_diff = f"{int(time_diff_hours)} hours ago"  # Display time difference in hours
-            elif time_diff_days == 1:
-                post.time_diff = "Yesterday"
-            else:
-                post.time_diff = None
+            post_time_diff = calculate_time_diff(current_time, post.created_on)
+            post.time_diff = post_time_diff
+
+
+            if post.comments:
+                comments = post.comments.all()
+                comments_num = comments.count()
+
+
+                for comment in comments:
+                    replies = comment.replies.all()
+                    comment.replies_num = replies.count()
+                    comments_num += comment.replies_num
+
+                post.comments_num = comments_num
+
 
         if posts:
             context['post'] = post
+
         
         return context
 
@@ -93,6 +116,7 @@ class TripDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 class TripCreateView(LoginRequiredMixin, CreateView):
     model = Trip
     form_class = TripCreateForm
+    login_url = '/login/'
 
     def form_valid(self, form):
         trip = form.save(commit=False)
@@ -106,6 +130,8 @@ class TripCreateView(LoginRequiredMixin, CreateView):
 class TripUpdateView(LoginRequiredMixin, UpdateView):
     model = Trip
     fields = ['title', 'image']
+    login_url = '/login/'
+
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -120,12 +146,18 @@ class TripUpdateView(LoginRequiredMixin, UpdateView):
 class TripDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Trip
     success_url = "/"
+    login_url = '/login/'
+
 
     def test_func(self):
         trip = self.get_object()
         if self.request.user == trip.created_by:
             return True
         return False
+    
+
+
+# Trip interactions (Add travellers/viewers, leave)
     
 def AddTraveller(request, pk):
     # Assuming Trip is your model
@@ -154,6 +186,8 @@ def CreateTraveller(request, pk):
 
     context = {'trip': trip, 'form': form}
     return render(request, 'partials/traveller_form.html', context)
+
+
 
 def AddViewer(request, pk):
     # Assuming Trip is your model
@@ -197,6 +231,9 @@ def LeaveTrip(request, pk):
     
     return render(request, 'travel/leave_confirm.html', {'trip': trip})
 
+
+# Posts views
+
 class PostCreateView(CreateView):
     model = Post
     form_class = PostCreateForm
@@ -207,7 +244,7 @@ class PostCreateView(CreateView):
         
         post = form.save(commit=False)
         post.created_by = self.request.user
-        post.trip = trip  # Assign the Trip instance, not the trip ID
+        post.trip = trip  
 
         geolocator = Nominatim(user_agent="travel_app")
         location = geolocator.geocode(post.location)
@@ -229,19 +266,31 @@ class PostView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         post = get_object_or_404(Post, pk=self.kwargs['pk'])
 
+        if post.comments:
+            comments = post.comments.all()
+            comments_num = comments.count()
+
+
+            for comment in comments:
+                replies = comment.replies.all()
+                comment.replies_num = replies.count()
+                comments_num += comment.replies_num
+
+            post.comments_num = comments_num
+
         current_time = timezone.now()
 
         # Calculate time difference for the post
-        post_time_diff = self.calculate_time_diff(current_time, post.created_on)
+        post_time_diff = calculate_time_diff(current_time, post.created_on)
 
         comments_with_replies = []
         # Calculate time difference for comments and replies
         for comment in post.comments.all():
-            comment.time_diff = self.calculate_time_diff(current_time, comment.created_on)
+            comment.time_diff = calculate_time_diff(current_time, comment.created_on)
             comment.replies_list = []
 
             for reply in comment.replies.all():
-                reply.time_diff = self.calculate_time_diff(current_time, reply.created_on)
+                reply.time_diff = calculate_time_diff(current_time, reply.created_on)
                 comment.replies_list.append(reply)
 
             comments_with_replies.append(comment)
@@ -254,27 +303,6 @@ class PostView(LoginRequiredMixin, View):
         }
         return render(request, self.template_name, context)
 
-    def calculate_time_diff(self, current_time, target_time):
-        time_diff = current_time - target_time
-
-        time_diff_hours = int(time_diff.total_seconds() / 3600)
-        time_diff_minutes = int(time_diff.total_seconds() / 60)
-        time_diff_days = time_diff.days
-
-        if time_diff_minutes < 1:
-            return "Just now"
-        elif time_diff_minutes == 1:
-            return "1 minute ago"
-        elif time_diff_minutes < 60:
-            return f"{time_diff_minutes} minutes ago"
-        elif time_diff_hours == 1:
-            return "1 hour ago"
-        elif time_diff_hours < 24:
-            return f"{time_diff_hours} hours ago"
-        elif time_diff_days == 1:
-            return "Yesterday"
-        else:
-            return None
 
     def post(self, request, *args, **kwargs):
         post = self.get_object()  # Get the post object
@@ -291,26 +319,91 @@ class PostView(LoginRequiredMixin, View):
         return self.render_to_response(self.get_context_data(form=form))
 
 
+def PostLike(request, pk):
+    instance = get_object_or_404(Post, id=pk)
+    form_class = CommentForm()
 
-    
+    if request.method == "POST":
+        if not instance.likes.filter(pk=request.user.id).exists():
+            instance.likes.add(request.user)
+        else:
+            instance.likes.remove(request.user)
 
+        instance.save()
 
+    current_time = timezone.now()
 
-class PostLike(View):
-    def get(self, request, pk):
-        post = get_object_or_404(Post, id=pk)
+    # Calculate time difference for the post
+    post_time_diff = calculate_time_diff(current_time, instance.created_on)
+
+    comments_with_replies = []
+    # Calculate time difference for comments and replies
+    for comment in instance.comments.all():
+        comment.time_diff = calculate_time_diff(current_time, comment.created_on)
+        comment.replies_list = []
+
+        for reply in comment.replies.all():
+            reply.time_diff = calculate_time_diff(current_time, reply.created_on)
+            comment.replies_list.append(reply)
+
+        comments_with_replies.append(comment)
+
+    context = {
+        'post': instance,
+        'post_time_diff': post_time_diff,
+        'comments': comments_with_replies,
+        'form': form_class
+    }
+
+    # If the request is POST, return the rendered template
+    if request.method == "POST":
+        return render(request, 'travel/post_detail.html', context)
+
+    # If the request is GET, return the rendered template
+    return render(request, 'travel/post_detail.html', context)
         
-        if post.likes.filter(id=request.user.id).exists():
-            post.likes.remove(request.user)
-        else:
-            post.likes.add(request.user)
 
-        # Redirect to the previous page
-        referer = request.META.get('HTTP_REFERER')
-        if referer:
-            return redirect(referer)
-        else:
-            return redirect('post-detail', pk=pk)
+
+def PostLikeCount(request, pk):
+    instance = get_object_or_404(Post, id=pk)
+    likes_count = instance.likes.count()
+    return (JsonResponse(likes_count, safe=False))
+
+
+def CommentLikeCount(request, pk):
+    instance = get_object_or_404(Comment, id=pk)
+    likes_count = instance.likes.count()
+    return (JsonResponse(likes_count, safe=False))
+
+def DeleteComment(request, pk):
+    instance = get_object_or_404(Comment, id=pk)
+    post = instance.post
+    instance.delete()
+
+    comments = post.comments.all()
+
+    current_time = timezone.now()
+
+    comments_with_replies = []
+
+    for comment in comments:
+        comment.time_diff = calculate_time_diff(current_time, comment.created_on)
+
+        likes_count = comment.likes.count()
+        comment.likes_count = likes_count
+
+        comment.replies_list = []
+        for reply in comment.replies.all():
+            reply.time_diff = calculate_time_diff(current_time, reply.created_on)
+            comment.replies_list.append(reply)
+
+        comments_with_replies.append(comment)
+
+
+
+    return render(request, 'partials/comment.html', context={'comments': comments_with_replies})
+        
+        
         
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
@@ -324,8 +417,13 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
     def get_success_url(self):
         # Redirect to the trip detail page after successfully deleting the post
-        return reverse_lazy('travel-detail', kwargs={'pk': self.object.trip_id})
+        return reverse_lazy('trip-detail', kwargs={'pk': self.object.trip_id})
     
+    
+
+# Comments views
+
+
 def AddComment(request, pk):
     
     post = get_object_or_404(Post, pk=pk)
@@ -338,43 +436,53 @@ def AddComment(request, pk):
             comment.created_by = request.user  # Set the post's creator to the current user
             comment.save()
 
-            comments = post.comments.all()
+            
+            post = get_object_or_404(Post, pk=comment.post.id)
+            form_class = CommentForm
+
+
+            if post.comments:
+                comments = post.comments.all()
+                comments_num = comments.count()
+
+
+                for comment in comments:
+                    replies = comment.replies.all()
+                    comment.replies_num = replies.count()
+                    comments_num += comment.replies_num
+
+                post.comments_num = comments_num
 
             current_time = timezone.now()
 
-            for comment in comments:
-                time_diff = current_time - comment.created_on
+            # Calculate time difference for the post
+            post_time_diff = calculate_time_diff(current_time, post.created_on)
 
-                time_diff_hours = int(time_diff.total_seconds() / 3600)
-                time_diff_minutes = int(time_diff.total_seconds() / 60)
-                time_diff_days = time_diff.days
+            comments_with_replies = []
+            # Calculate time difference for comments and replies
+            for comment in post.comments.all():
+                comment.time_diff = calculate_time_diff(current_time, comment.created_on)
+                comment.replies_list = []
 
-                if time_diff_minutes < 1:
-                    comment.time_diff = "Just now"
-                elif time_diff_minutes == 1:
-                    comment.time_diff = "1 minute ago"
-                elif time_diff_minutes < 60:
-                    comment.time_diff = f"{time_diff_minutes} minutes ago"
-                elif time_diff_hours == 1:
-                    comment.time_diff = "1 hour ago"
-                elif time_diff_hours < 24:
-                    comment.time_diff = f"{time_diff_hours} hours ago"
-                elif time_diff_days == 1:
-                    comment.time_diff = "Yesterday"
-                else:
-                    comment.time_diff = None
+                for reply in comment.replies.all():
+                    reply.time_diff = calculate_time_diff(current_time, reply.created_on)
+                    comment.replies_list.append(reply)
 
-                likes_count = comment.likes.count()
-                comment.likes_count = likes_count
-                
-            
-            context = {'post': post, 'form': form, 'comments': comments}
-            return render(request, 'partials/comment.html', context)
+                comments_with_replies.append(comment)
+
+            context = {
+                'post': post,
+                'post_time_diff': post_time_diff,
+                'comments': comments_with_replies,
+                'form': form_class
+            }
+            return render(request, 'travel/post_detail.html', context)
 
     else:
         form = CommentForm()  # Initialize an empty form
         context = {'post': post, 'form': form}
         return render(request, 'partials/comment_form.html', context)
+
     
 def CommentLike(request, pk):
     if request.method == "POST":
@@ -382,13 +490,11 @@ def CommentLike(request, pk):
         if not instance.likes.filter(pk=request.user.id).exists():
             instance.likes.add(request.user)
             instance.save()
-            print('Saved Like')
             
             return render(request, 'partials/likes_area.html', context={'comment':instance})
         else:
             instance.likes.remove(request.user)
             instance.save() 
-            print('Unsaved Like')
 
             return render(request, 'partials/likes_area.html', context={'comment':instance})
         
@@ -397,7 +503,6 @@ def CommentLike(request, pk):
 def CommentLikeCount(request, pk):
     instance = get_object_or_404(Comment, id=pk)
     likes_count = instance.likes.count()
-    print('Likes: ', likes_count)
     return (JsonResponse(likes_count, safe=False))
 
 def DeleteComment(request, pk):
@@ -407,8 +512,30 @@ def DeleteComment(request, pk):
 
     comments = post.comments.all()
 
+    current_time = timezone.now()
 
-    return render(request, 'partials/comment.html', context={'comments': comments})
+    comments_with_replies = []
+
+    for comment in comments:
+        comment.time_diff = calculate_time_diff(current_time, comment.created_on)
+
+        likes_count = comment.likes.count()
+        comment.likes_count = likes_count
+
+        comment.replies_list = []
+        for reply in comment.replies.all():
+            reply.time_diff = calculate_time_diff(current_time, reply.created_on)
+            comment.replies_list.append(reply)
+
+        comments_with_replies.append(comment)
+
+
+
+    return render(request, 'partials/comment.html', context={'comments': comments_with_replies})
+
+
+# Reply views
+
 
 def AddReply(request, pk):
     
@@ -423,38 +550,47 @@ def AddReply(request, pk):
             reply.save()
 
             replies = comment.replies.all()
+            
+            post = get_object_or_404(Post, pk=comment.post.id)
+            form_class = CommentForm
+
+
+            if post.comments:
+                comments = post.comments.all()
+                comments_num = comments.count()
+
+
+                for comment in comments:
+                    replies = comment.replies.all()
+                    comment.replies_num = replies.count()
+                    comments_num += comment.replies_num
+
+                post.comments_num = comments_num
+
             current_time = timezone.now()
 
+            # Calculate time difference for the post
+            post_time_diff = calculate_time_diff(current_time, post.created_on)
 
-            for reply in replies:
-                time_diff = current_time - reply.created_on
+            comments_with_replies = []
+            # Calculate time difference for comments and replies
+            for comment in post.comments.all():
+                comment.time_diff = calculate_time_diff(current_time, comment.created_on)
+                comment.replies_list = []
 
-                time_diff_hours = int(time_diff.total_seconds() / 3600)
-                time_diff_minutes = int(time_diff.total_seconds() / 60)
-                time_diff_days = time_diff.days
+                for reply in comment.replies.all():
+                    reply.time_diff = calculate_time_diff(current_time, reply.created_on)
+                    comment.replies_list.append(reply)
 
-                if time_diff_minutes < 1:
-                    reply.time_diff = "Just now"
-                elif time_diff_minutes == 1:
-                    reply.time_diff = "1 minute ago"
-                elif time_diff_minutes < 60:
-                    reply.time_diff = f"{time_diff_minutes} minutes ago"
-                elif time_diff_hours == 1:
-                    reply.time_diff = "1 hour ago"
-                elif time_diff_hours < 24:
-                    reply.time_diff = f"{time_diff_hours} hours ago"
-                elif time_diff_days == 1:
-                    reply.time_diff = "Yesterday"
-                else:
-                    reply.time_diff = None
+                comments_with_replies.append(comment)
 
-                reply_likes_count = reply.likes.count()
-                reply.likes_count = reply_likes_count
-
-            comment.replies.set(replies)
-
-            context = {'comment': comment, 'reply_form': reply_form, 'replies': replies}
-            return render(request, 'partials/reply.html', context)
+            context = {
+                'post': post,
+                'post_time_diff': post_time_diff,
+                'comments': comments_with_replies,
+                'form': form_class
+            }
+            return render(request, 'travel/post_detail.html', context)
 
     else:
         reply_form = ReplyForm()  # Initialize an empty form
@@ -467,20 +603,17 @@ def ReplyLike(request, pk):
         if not instance.likes.filter(pk=request.user.id).exists():
             instance.likes.add(request.user)
             instance.save()
-            print('Saved Like')
             
             return render(request, 'partials/reply_likes_area.html', context={'reply':instance})
         else:
             instance.likes.remove(request.user)
             instance.save() 
-            print('Unsaved Like')
 
             return render(request, 'partials/reply_likes_area.html', context={'reply':instance})
         
 def ReplyLikeCount(request, pk):
     instance = get_object_or_404(Reply, id=pk)
     reply_likes_count = instance.likes.count()
-    print('Likes: ', reply_likes_count)
     return (JsonResponse(reply_likes_count, safe=False))
 
 
@@ -491,8 +624,34 @@ def DeleteReply(request, pk):
     instance.delete()
 
     replies = comment.replies.all()
-    return render(request, 'partials/reply.html', context={'replies':replies})
+    current_time = timezone.now()
 
+    reply_form = ReplyForm()
+
+    comments_with_replies = []
+
+    post = get_object_or_404(Post, pk=comment.post.id)
+
+    comments = post.comments.all()
+
+    for comment in comments:
+        comment.time_diff = calculate_time_diff(current_time, comment.created_on)
+
+        likes_count = comment.likes.count()
+        comment.likes_count = likes_count
+
+        comment.replies_list = []
+        for reply in comment.replies.all():
+            reply.time_diff = calculate_time_diff(current_time, reply.created_on)
+            comment.replies_list.append(reply)
+
+        comments_with_replies.append(comment)
+
+    context = {'comments': comments_with_replies, 'reply_form': reply_form, 'replies': replies}
+    return render(request, 'partials/comment.html', context)
+
+
+# Map view
 
 @login_required
 def show_map(request, location):
@@ -514,3 +673,78 @@ def show_map(request, location):
         longitude = None
 
     return render(request, 'travel/map.html', {'latitude': latitude, 'longitude': longitude, 'location': location})
+
+def like_list(request, pk):
+    instance = get_object_or_404(Comment, id=pk)
+    comment = instance
+    context = {
+        'comment': comment,
+        'likes': comment.likes.all()
+    }
+    return render(request, 'partials/likes.html', context)
+
+def post_like_list(request, pk):
+    instance = get_object_or_404(Post, id=pk)
+    post = instance
+    context = {
+        'post': post,
+        'likes': post.likes.all()
+    }
+    return render(request, 'partials/post_likes.html', context)
+
+def reply_like_list(request, pk):
+    instance = get_object_or_404(Reply, id=pk)
+    reply = instance
+    context = {
+        'reply': reply,
+        'likes': reply.likes.all()
+    }
+    return render(request, 'partials/reply_likes.html', context)
+
+
+def close_like(request, pk):
+    
+    comment = get_object_or_404(Comment, pk=pk)
+    
+    form_class = CommentForm()
+    
+    post = get_object_or_404(Post, pk=comment.post.id)
+
+
+    if post.comments:
+        comments = post.comments.all()
+        comments_num = comments.count()
+
+
+        for comment in comments:
+            replies = comment.replies.all()
+            comment.replies_num = replies.count()
+            comments_num += comment.replies_num
+
+        post.comments_num = comments_num
+
+    current_time = timezone.now()
+
+    # Calculate time difference for the post
+    post_time_diff = calculate_time_diff(current_time, post.created_on)
+
+    comments_with_replies = []
+    # Calculate time difference for comments and replies
+    for comment in post.comments.all():
+        comment.time_diff = calculate_time_diff(current_time, comment.created_on)
+        comment.replies_list = []
+
+        for reply in comment.replies.all():
+            reply.time_diff = calculate_time_diff(current_time, reply.created_on)
+            comment.replies_list.append(reply)
+
+        comments_with_replies.append(comment)
+
+    context = {
+        'post': post,
+        'post_time_diff': post_time_diff,
+        'comments': comments_with_replies,
+        'form': form_class
+    }
+    return render(request, 'travel/post_detail.html', context)
+

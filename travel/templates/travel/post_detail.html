@@ -1,6 +1,7 @@
 {% extends "travel/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
+{% load static %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
@@ -10,7 +11,11 @@
         <!-- Poster Profile Picture, Name, and Timestamp -->
 
         <div class="p-2">
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ post.created_by.profile.image.url }}" width="50" height="50">
+            {% if post.created_by.profile.image %}
+                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ post.created_by.profile.image }}" width="50" height="50" alt="{{ post.created_by.profile.f_name }} Profile Picture">
+            {% else %}
+                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ post.created_by.profile.f_name }} Profile Picture">
+            {% endif %}
         </div>
         <div class="p-2">
             <div class="fw-bold">{{ post.created_by.profile.f_name }} {{ post.created_by.profile.l_name }}</div>
@@ -46,25 +51,21 @@
     </div>
     <div class="justify-content-center ms-auto me-auto">
         {% if post.image %}
-            <img style="object-fit: cover; object-position: center center;" src="{{ post.image.url }}" class="post_image">
+            <img style="object-fit: cover; object-position: center center;" src="{{ post.image }}" class="post_image">
         {% endif %}
     </div>
     
     <!-- Likes and comments counter -->
 
     <div class="d-flex">
-        {% if post.likes.count > 0 %}
-            <div class="d-flex align-items-center">
-                <span class="material-icons me-2 counter me-auto ms-5" style="color: #4444FF; font-weight: 600;">
-                    thumb_up
-                </span>
-                <p class="counter mb-1 ms-1">{{ post.likes.count }}</p>
-            </div>
-        {% endif %}
+        <div class="d-flex me-auto me-5"
+        >
+            {% include 'partials/post_likes_counter.html' %}
+        </div>
 
         {% if post.comments.count > 0 %}
             <div class="d-flex align-items-center ms-auto me-5">
-                <p class="counter mb-1">{{ post.comments.count}} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
+                <p class="counter mb-1">{{ post.comments_num }} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
             </div>
         {% endif %}
     </div>
@@ -72,22 +73,12 @@
     <!-- Like and comment buttons -->
 
     <div class="d-flex justify-content-around">
-        <div class="mr-auto p-2 d-flex pointer" data-url="{% url 'post-like' post.id %}" onclick="redirectToUrl(this)">
-
-
-            <!-- Change style based on whether user has liked the post or not -->
-
-            {% if user in post.likes.all %}
-                <span class="material-icons me-2" style="color: #4444FF; font-weight: 600;">
-                    thumb_up
-                </span>
-                <p style="color: #4444FF; font-weight: 600;">Like</p>
-            {% else %}
-                <span class="material-symbols-outlined me-2">
-                    thumb_up
-                </span>
-                <p>Like</p>
-            {% endif %}
+        <div class="ms-5 ps-3 p-2 d-flex pointer" style="font-size: 14px;" 
+        hx-post="{% url 'post-like' post.id %}"
+        hx-trigger="click"
+        hx-target=".body"
+        hx-swap="outerHTML">
+            {% include 'partials/post_likes_area.html' %}
         </div>
 
         <!-- Comment button opens and closes comment form -->
@@ -127,12 +118,14 @@
 </div>
 
 
+
+
 <!-- Comments List -->
+{% if comments %}
+<h2 class="mb-4">Comments</h2>
+{% endif %}
 <div id="comment_list">
-    {% if comments %}
-    <h2 class="mb-4">Comments</h2>
-    {% endif %}
-    {% include 'partials/comment.html' %}
+    {% include 'partials/comment.html' with comments=comments %}
 </div>
 
 
@@ -157,6 +150,11 @@
             }
         });
     </script>
+
+
+<div class="like_list post_like_list_{{ post.id }} d-none position-fixed top-50 start-50 translate-middle">
+
+</div>
 
 {% endblock content %}
 

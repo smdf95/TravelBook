@@ -1,3 +1,4 @@
+cloudinary==1.39.1
 Django==5.0
 django_crispy_forms==2.1
 django_resized==1.0.2

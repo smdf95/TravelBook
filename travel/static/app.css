@@ -82,3 +82,17 @@
     max-width: 300px;
     max-height: 300px;
 }
+
+.like_list {
+    background-color: white; 
+    border: 1px solid #ccc; 
+    padding: 20px; 
+    width: 300px; 
+    box-shadow: 0 0 2000px 2000px rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+}
+
+.d-none {
+    display: none;
+}
+

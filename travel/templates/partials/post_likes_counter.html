@@ -1,14 +1,14 @@
 <div class="d-flex align-items-center">
     <div class="d-flex align-items-center"
-    hx-get="{% url 'like_list' comment.id %}"
+    hx-get="{% url 'post_like_list' post.id %}"
     hx-trigger="click"
-    hx-target=".like_list_{{  comment.id }}"
+    hx-target=".post_like_list_{{  post.id }}"
     hx-swap="outerHTML"
     >
         <span class="pointer material-icons me-2 counter me-auto ms-5"  style="color: #4444FF; font-weight: 600;">
             thumb_up
         </span>
-        <p class="pointer counter counter_{{ comment.id }} mb-1 ms-1"
-        >{% if comment.likes.count == 0 %}0{% else %}{{ comment.likes.count }}{% endif %}</p>
+        <p class="pointer counter counter_{{ post.id }} mb-1 ms-1"
+        >{% if post.likes.count == 0 %}0{% else %}{{ post.likes.count }}{% endif %}</p>
     </div>
 </div>
