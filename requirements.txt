@@ -1,6 +1,6 @@
 cloudinary==1.39.1
-cloudinary_storage==1.12.0
-django==5.0
+django-cloudinary-storage
+Django==5.0
 django_crispy_forms==2.1
 django_resized==1.0.2
 dj_database_url
