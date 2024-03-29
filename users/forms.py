@@ -13,8 +13,8 @@ import time
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
-    f_name = forms.CharField(label='First Name', max_length=100)
-    l_name = forms.CharField(label='Last Name', max_length=100)
+    first_name = forms.CharField(label='First Name', max_length=100)
+    last_name = forms.CharField(label='Last Name', max_length=100)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -24,7 +24,7 @@ class UserRegisterForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'f_name', 'l_name', 'password1', 'password2']
+        fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2']
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -32,23 +32,59 @@ class UserRegisterForm(UserCreationForm):
             raise ValidationError("This email address is already in use.")
         return email
     
+    def save(self, commit=True):
+        user = super(UserRegisterForm, self).save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        
+        if commit:
+            user.save()
+
+        return user
+    
+
+    
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField()
-    
+    first_name = forms.CharField(label='First Name', max_length=100, required=False)
+    last_name = forms.CharField(label='Last Name', max_length=100, required=False)
 
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['username', 'email', 'first_name', 'last_name']
+
+    def __init__(self, *args, **kwargs):
+        super(UserUpdateForm, self).__init__(*args, **kwargs)
+        self.fields['email'].initial = self.instance.email
+        self.fields['first_name'].initial = self.instance.first_name
+        self.fields['last_name'].initial = self.instance.last_name
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            raise ValidationError("This email address is already in use.")
+        return email
+
+    def save(self, commit=True):
+        user = super(UserUpdateForm, self).save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        
+        if commit:
+            user.save()
+
+        return user
 
 
 class ProfileUpdateForm(forms.ModelForm):
-    f_name = forms.CharField(label='First Name', max_length=100)
-    l_name = forms.CharField(label='Last Name', max_length=100)
+    
     image = forms.ImageField()
 
     class Meta:
         model = Profile
-        fields = ['f_name', 'l_name', 'image']
+        fields = ['image']
 
     def save(self, commit=True):
         instance = super(ProfileUpdateForm, self).save(commit=False)
@@ -76,6 +112,3 @@ class ProfileUpdateForm(forms.ModelForm):
 
         
         return instance
-
-
-

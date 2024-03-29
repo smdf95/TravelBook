@@ -96,3 +96,10 @@
     display: none;
 }
 
+.hover {
+    transition: background-color 0.3s ease;
+}
+
+.hover:hover {
+    background-color: rgba(100, 100, 100, 0.5); /* Darkening effect */
+}

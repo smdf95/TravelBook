@@ -2,8 +2,10 @@ from django import forms
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field
+from crispy_forms.bootstrap import InlineField, Div
 from .models import Trip, Post, Comment, Reply
 import cloudinary
+from cloudinary import uploader
 from cloudinary.forms import CloudinaryFileField
 
 class TripCreateForm(forms.ModelForm):
@@ -13,11 +15,16 @@ class TripCreateForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_method = 'POST'
         self.helper.add_input(Submit('submit', 'Create'))
+        
 
 
     class Meta:
         model = Trip
-        fields = ['title', 'image']
+        fields = ['title', 'image', 'date_from', 'date_to']
+        widgets = {
+            'date_from': forms.DateInput(attrs={'type': 'date'}),
+            'date_to': forms.DateInput(attrs={'type': 'date'}),
+        }
 
     def save(self, commit=True):
         instance = super(TripCreateForm, self).save(commit=False)
@@ -28,23 +35,36 @@ class TripCreateForm(forms.ModelForm):
                 self.cleaned_data['image'].file.seek(0)
 
                 # Pass the file content to Cloudinary uploader and set public_id
-                uploaded_image = cloudinary.uploader.upload(
+                uploaded_image = uploader.upload(
                     self.cleaned_data['image'].file.read(),
                     public_id=f"trip_pics/{self.cleaned_data['image'].name.split('/')[-1].split('.')[0]}"
                 )
-
 
                 instance.image = uploaded_image['secure_url']
 
                 if commit:
                     instance.save()
 
-
             except Exception as e:
                 print(f"Error in cloudinary upload: {e}")
 
-        
+        if not instance.image:
+            try:
+                default_image = uploader.upload(
+                    open('path_to_default_image/default.png', 'rb'),  # Provide the path to your default.png
+                    public_id="trip_pics/default"
+                )
+                instance.image = default_image['secure_url']
+
+                if commit:
+                    instance.save()
+
+            except Exception as e:
+                print(f"Error setting default image: {e}")
+
         return instance
+    
+
 
 class AddTravellerForm(forms.ModelForm):
     travellers = forms.EmailField(label='Traveller Email', widget=forms.EmailInput(attrs={'class': 'form-control'}))

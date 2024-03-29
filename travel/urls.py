@@ -29,6 +29,7 @@ urlpatterns = [
     path('trip/<int:pk>/post/new', PostCreateView.as_view(), name='post-create'),
     path('post/<int:pk>', PostView.as_view(), name='post-detail'),
     path('post/<int:pk>/like', views.PostLike, name='post-like'),
+    path('trip/post/<int:pk>/like', views.PostLikeTripView, name='post-like-trip'),
     path('post/<int:pk>/like_count', views.PostLikeCount, name='post-like-count'),
     path('post/<int:pk>/delete', PostDeleteView.as_view(), name='post-delete'),
     
@@ -52,6 +53,7 @@ urlpatterns = [
     path('like_list/<int:pk>', views.like_list, name='like_list'),
     path('reply_like_list/<int:pk>', views.reply_like_list, name='reply_like_list'),
     path('post_like_list/<int:pk>', views.post_like_list, name='post_like_list'),
+    path('post_like_list_trip/<int:pk>', views.post_like_list_trip, name='post_like_list_trip'),
     
     # Close Like URL
     path('close_like/<int:pk>', views.close_like, name='close_like'),

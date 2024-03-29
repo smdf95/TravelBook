@@ -13,8 +13,19 @@ class Trip(models.Model):
     )
     travellers = models.ManyToManyField(User, related_name='travelled_trips')
     viewers = models.ManyToManyField(User, related_name='viewed_trips')
+    date_from = models.DateField(blank=True, null=True)
+    date_to = models.DateField(blank=True, null=True)
+    
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_trips')
     created_on = models.DateTimeField(auto_now_add=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        # Check if the object already exists (updating) and if an image has been uploaded
+        if self.pk and self.image:
+            existing = Trip.objects.get(pk=self.pk)
+            if existing.image != self.image:
+                existing.image.delete()  # Delete the old image
+        super(Trip, self).save(*args, **kwargs)
         
 
     def __str__(self):

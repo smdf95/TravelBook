@@ -5,14 +5,14 @@
 <div class="content-section">
     <div class="media">
         {% if user.profile.image %}
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ user.profile.image }}" width="200" height="200" alt="{{ user.profile.f_name }} Profile Picture">
+            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ user.profile.image }}" width="200" height="200" alt="{{ user.profile.first_name }} Profile Picture">
         {% else %}
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="200" height="200" alt="{{ user.profile.f_name }} Profile Picture">
+            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="200" height="200" alt="{{ user.profile.first_name }} Profile Picture">
         {% endif %}
 
 
         <div class="media-body">
-            <h2 class="account-heading">{{ user.profile.f_name }} {{ user.profile.l_name }} ({{ user.username }})</h2>
+            <h2 class="account-heading">{{ user.first_name }} {{ user.last_name }} ({{ user.username }})</h2>
             <p class="text-secondary">{{ user.email }}</p>
         </div>
     </div>

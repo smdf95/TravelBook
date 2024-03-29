@@ -2,7 +2,7 @@
     <div class="d-flex align-items-center"
     hx-get="{% url 'post_like_list' post.id %}"
     hx-trigger="click"
-    hx-target=".post_like_list_{{  post.id }}"
+    hx-target=".post_like_list"
     hx-swap="outerHTML"
     >
         <span class="pointer material-icons me-2 counter me-auto ms-5"  style="color: #4444FF; font-weight: 600;">

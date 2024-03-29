@@ -3,9 +3,9 @@
 <div class="d-flex align-items-center">
     <div class="p-2 flex-shrink-1">
         {% if request.user.profile.image %}
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ request.user.profile.image }}" width="50" height="50" alt="{{ request.user.profile.f_name }} Profile Picture">
+            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ request.user.profile.image }}" width="50" height="50" alt="{{ request.user.first_name }} Profile Picture">
         {% else %}
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ request.user.profile.f_name }} Profile Picture">
+            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ request.user.first_name }} Profile Picture">
         {% endif %}
 
     </div>

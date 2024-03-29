@@ -16,14 +16,14 @@
         <div class="d-flex justify-content-start align-items-center">
             <div class="p-2">
                 {% if like.profile.image %}
-                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ like.profile.image }}" width="50" height="50" alt="{{ like.profile.f_name }} Profile Picture">
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ like.profile.image }}" width="50" height="50" alt="{{ like.first_name }} Profile Picture">
                 {% else %}
-                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ like.profile.f_name }} Profile Picture">
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ like.first_name }} Profile Picture">
                 {% endif %}
     
             </div>
             <div class="p-2">
-                {{ like.profile.f_name }} {{ like.profile.l_name }}
+                {{ like.first_name }} {{ like.last_name }}
             </div>
         </div>
             {% empty %}

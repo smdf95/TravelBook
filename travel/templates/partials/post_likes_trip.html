@@ -1,10 +1,10 @@
 {% load static %}
-<div class="like_list like_list_{{ comment.id }} position-fixed top-50 start-50 translate-middle d-flex flex-column">
+<div class="like_list post_like_list_{{ post.id }} position-fixed top-50 start-50 translate-middle d-flex flex-column">
     <div class="d-flex">
 
         <h3 class="p-2">Likes</h3>
         <span class="material-icons pointer justify ms-auto p-2"
-            hx-get="{% url 'close_like' comment.id %}"
+            hx-get="{% url 'trip-detail' post.trip_id %}"
             hx-target=".body"
             hx-swap="outerHTML">
             close

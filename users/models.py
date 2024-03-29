@@ -12,8 +12,6 @@ class Profile(models.Model):
         upload_to='profile_pics',
         blank=True
     )
-    f_name = models.CharField(max_length=100, default='')
-    l_name = models.CharField(max_length=100, default='')
 
     def __str__(self):
         return f'{self.user.username} Profile'

@@ -58,12 +58,14 @@ class TripListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         # Filter Trips based on the logged-in user
-        return Trip.objects.filter(travellers=self.request.user)
+        user = self.request.user
+        return Trip.objects.filter(travellers=user) | Trip.objects.filter(viewers=user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['filter'] = TripFilter(self.request.GET, queryset=self.get_queryset())
         return context
+    
     
 class TripDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Trip
@@ -75,6 +77,9 @@ class TripDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         # Access assigned_users within get_context_data
         travellers = self.object.travellers.all()
         context['travellers'] = travellers
+
+        viewers = self.object.viewers.all()
+        context['viewers'] = viewers
 
         posts = self.object.posts.all().order_by('-created_on')
         context['posts'] = posts
@@ -129,7 +134,7 @@ class TripCreateView(LoginRequiredMixin, CreateView):
     
 class TripUpdateView(LoginRequiredMixin, UpdateView):
     model = Trip
-    fields = ['title', 'image']
+    fields = ['title', 'image', 'date_from', 'date_to']
     login_url = '/login/'
 
 
@@ -137,11 +142,7 @@ class TripUpdateView(LoginRequiredMixin, UpdateView):
         form.instance.created_by = self.request.user
         return super().form_valid(form)
     
-    def test_func(self):
-        trip = self.get_object()
-        if self.request.user == trip.created_by:
-            return True
-        return False
+    
     
 class TripDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Trip
@@ -361,6 +362,52 @@ def PostLike(request, pk):
 
     # If the request is GET, return the rendered template
     return render(request, 'travel/post_detail.html', context)
+
+
+def PostLikeTripView(request, pk):
+    instance = get_object_or_404(Post, id=pk)
+
+    trip = get_object_or_404(Trip, id=instance.trip_id)
+    posts = trip.posts.all().order_by('-created_on')
+
+    if request.method == "POST":
+        if not instance.likes.filter(pk=request.user.id).exists():
+            instance.likes.add(request.user)
+        else:
+            instance.likes.remove(request.user)
+
+        instance.save()
+
+    current_time = timezone.now()
+
+    for post in posts:
+        post_time_diff = calculate_time_diff(current_time, post.created_on)
+        post.time_diff = post_time_diff
+
+        if post.comments:
+            comments = post.comments.all()
+            comments_num = comments.count()
+
+            for comment in comments:
+                replies = comment.replies.all()
+                comment.replies_num = replies.count()
+                comments_num += comment.replies_num
+
+            post.comments_num = comments_num
+
+    context = {
+        'trip': trip,
+        'posts': posts,
+        'post': instance,
+    }
+
+    # If the request is POST, return the rendered template
+    if request.method == "POST":
+        return render(request, 'travel/trip_detail.html', context)
+
+    # If the request is GET, return the rendered template
+    return render(request, 'travel/trip_detail.html', context)
+
         
 
 
@@ -691,6 +738,15 @@ def post_like_list(request, pk):
         'likes': post.likes.all()
     }
     return render(request, 'partials/post_likes.html', context)
+
+def post_like_list_trip(request, pk):
+    instance = get_object_or_404(Post, id=pk)
+    post = instance
+    context = {
+        'post': post,
+        'likes': post.likes.all()
+    }
+    return render(request, 'partials/post_likes_trip.html', context)
 
 def reply_like_list(request, pk):
     instance = get_object_or_404(Reply, id=pk)

@@ -1,7 +1,7 @@
 <div class="d-flex align-items-center"
     hx-get="{% url 'reply_like_list' reply.id %}"
     hx-trigger="click"
-    hx-target=".reply_like_list_{{ reply.id }}"
+    hx-target=".reply_like_list"
     hx-swap="outerHTML"
     >
     <div class="d-flex align-items-center">
