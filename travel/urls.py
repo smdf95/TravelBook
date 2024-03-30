@@ -19,11 +19,13 @@ urlpatterns = [
     path('trip/<int:pk>', TripDetailView.as_view(), name='trip-detail'),
     path('trip/<int:pk>/update', TripUpdateView.as_view(), name='trip-update'),
     path('trip/<int:pk>/delete', TripDeleteView.as_view(), name='trip-delete'),
-    path('trip/<int:pk>/add_traveller', views.AddTraveller, name='add-traveller'),
-    path('trip/<int:pk>/create-traveller', views.CreateTraveller, name='create-traveller'),
-    path('trip/<int:pk>/add-viewer', views.AddViewer, name='add-viewer'),
-    path('trip/<int:pk>/create-viewer', views.CreateViewer, name='create-viewer'),
+    path('trip/<int:pk>/create-traveller/', views.CreateTraveller, name='create-traveller'),
+    path('trip/<int:pk>/create-viewer/', views.CreateViewer, name='create-viewer'),
     path('trip/<int:pk>/leave-trip', views.LeaveTrip, name='leave-trip'),
+    path('join-trip/<str:link>/', views.join_trip, name='join-trip'),
+    path('join-trip-final/<str:link>/', views.join_trip_final, name='join-trip-final'),
+    path('join-trip-viewer/<str:link>/', views.join_trip_viewer, name='join-trip-viewer'),
+    path('join-trip-viewer-final/<str:link>/', views.join_trip_viewer_final, name='join-trip-viewer-final'),
     
     # Post URLs
     path('trip/<int:pk>/post/new', PostCreateView.as_view(), name='post-create'),

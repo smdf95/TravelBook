@@ -1,14 +1,15 @@
 {% load static %}
+<div class="row">
+    <div class="col-md-1"></div>
+        <div class="col d-flex align-items-center">
+            <div class="p-2 flex-shrink-1">
+                {% if request.user.profile.image %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ request.user.profile.image }}" width="50" height="50" alt="{{ request.user.first_name }} Profile Picture">
+                {% else %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ request.user.first_name }} Profile Picture">
+                {% endif %}
 
-<div class="d-flex align-items-center">
-    <div class="p-2 flex-shrink-1">
-        {% if request.user.profile.image %}
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ request.user.profile.image }}" width="50" height="50" alt="{{ request.user.first_name }} Profile Picture">
-        {% else %}
-            <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ request.user.first_name }} Profile Picture">
-        {% endif %}
-
-    </div>
+            </div>
     <div class="p-2">
 
         <form 
@@ -23,9 +24,16 @@
                 {{ reply_form.content }}
             </div>
             <div class="p-2">
-                <button class="btn btn-outline-info" id="submit" type="submit">Submit</button>
+                <button class="btn btn-outline-info" id="submit" type="submit">
+                    <span class="material-symbols-outlined">
+                        send
+                    </span>
+                </button>
             </div>
         </form>
     </div>
 
 </div>
+<div class="col-md-1"></div>
+</div>
+

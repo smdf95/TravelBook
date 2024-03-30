@@ -1,8 +1,14 @@
 import os
 import requests
+from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.generic import (
     ListView, 
@@ -20,6 +26,7 @@ from geopy.geocoders import Nominatim
 from .models import Trip, Post, Comment, Reply
 from .filters import TripFilter
 from .forms import TripCreateForm, AddTravellerForm, AddViewerForm, PostCreateForm, CommentForm, ReplyForm
+import uuid
 
 # Function for calculating time difference between when post/comment/reply was created and when the user is viewing it
 
@@ -33,13 +40,13 @@ def calculate_time_diff(current_time, target_time):
     if time_diff_minutes < 1:
         return "Just now"
     elif time_diff_minutes == 1:
-        return "1 minute ago"
+        return "1 min"
     elif time_diff_minutes < 60:
-        return f"{time_diff_minutes} minutes ago"
+        return f"{time_diff_minutes} min"
     elif time_diff_hours == 1:
-        return "1 hour ago"
+        return "1 hr"
     elif time_diff_hours < 24:
-        return f"{time_diff_hours} hours ago"
+        return f"{time_diff_hours} hr"
     elif time_diff_days == 1:
         return "Yesterday"
     else:
@@ -159,64 +166,117 @@ class TripDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 # Trip interactions (Add travellers/viewers, leave)
-    
-def AddTraveller(request, pk):
-    # Assuming Trip is your model
-    trip = Trip.objects.get(pk=pk)
-    context = {'form': AddTravellerForm, 'trip': trip, 'travellers': trip.travellers.all()}
-    return render(request, 'travel/add_traveller.html', context)
-
 
 def CreateTraveller(request, pk):
     trip = Trip.objects.get(pk=pk)
     
     if request.method == 'POST':
-        form = AddTravellerForm(request.POST)  # Initialize form with POST data
-        if form.is_valid():
-            email = form.cleaned_data['travellers']
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                print('No such user with the provided email.')
-            else:
-                trip.travellers.add(user)
-                context = {'traveller': user}
-                return render(request, 'partials/traveller.html', context)
-    else:
-        form = AddTravellerForm()  # Initialize an empty form
+        data = create_invitation_link(request, trip, 'add-traveller')
+        return JsonResponse(data)
 
-    context = {'trip': trip, 'form': form}
+    context = {'trip': trip}
     return render(request, 'partials/traveller_form.html', context)
-
-
-
-def AddViewer(request, pk):
-    # Assuming Trip is your model
-    trip = Trip.objects.get(pk=pk)
-    context = {'form': AddViewerForm, 'trip': trip, 'viewers': trip.viewers.all()}
-    return render(request, 'travel/add_viewer.html', context)
-
 
 def CreateViewer(request, pk):
     trip = Trip.objects.get(pk=pk)
     
     if request.method == 'POST':
-        form = AddViewerForm(request.POST)  # Initialize form with POST data
-        if form.is_valid():
-            email = form.cleaned_data['viewers']
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                print('No such user with the provided email.')
-            else:
-                trip.viewers.add(user)
-                context = {'viewer': user}
-                return render(request, 'partials/viewer.html', context)
-    else:
-        form = AddViewerForm()  # Initialize an empty form
+        data = create_invitation_link(request, trip, 'add-viewer')
+        return JsonResponse(data)
 
-    context = {'trip': trip, 'form': form}
+    context = {'trip': trip}
     return render(request, 'partials/viewer_form.html', context)
+
+def create_invitation_link(request, trip, action):
+    if action == 'add-traveller':
+        unique_link = uuid.uuid4().hex[:10]  # Generate a unique 10-character link
+        trip.traveller_invitation_link = unique_link
+        link = request.build_absolute_uri(reverse('join-trip', kwargs={'link': unique_link}))
+    elif action == 'add-viewer':
+        unique_link = uuid.uuid4().hex[:10]  # Generate a unique 10-character link
+        trip.viewer_invitation_link = unique_link
+        link = request.build_absolute_uri(reverse('join-trip-viewer', kwargs={'link': unique_link}))
+    else:
+        link = ''
+
+    trip.save()
+    return {'link': link}
+
+@login_required
+def join_trip(request, link):
+    try:
+        trip = Trip.objects.get(traveller_invitation_link=link)
+    except Trip.DoesNotExist:
+        trip = None
+
+    if trip is not None:
+        context = {'trip': trip, 'link': link}
+        return render(request, 'travel/invite_traveller.html', context)
+    else:
+        # Invalid link
+        return HttpResponse('Invalid invitation link')
+
+
+def join_trip_final(request, link):
+    try:
+        trip = Trip.objects.get(traveller_invitation_link=link)
+    except Trip.DoesNotExist:
+        trip = None
+
+    if trip is not None:
+        if request.user not in trip.travellers.all():
+            if request.user in trip.viewers.all():
+                trip.viewers.remove(request.user)
+                trip.travellers.add(request.user)
+                trip.save()
+                messages.success(request, 'You have successfully joined the trip!')
+            else:
+                trip.travellers.add(request.user)
+                trip.save()
+                messages.success(request, 'You have successfully joined the trip!')
+
+            return redirect('trip-detail', pk=trip.pk)
+        else:
+            messages.warning(request, 'You are already part of this trip!')
+            return redirect('trip-detail', pk=trip.pk)
+    else:
+        # Invalid link
+        return HttpResponse('Invalid invitation link')
+
+@login_required
+def join_trip_viewer(request, link):
+    try:
+        trip = Trip.objects.get(viewer_invitation_link=link)
+    except Trip.DoesNotExist:
+        trip = None
+
+    if trip is not None:
+        context = {'trip': trip, 'link': link}
+        return render(request, 'travel/invite_viewer.html', context)
+    else:
+        # Invalid link
+        return HttpResponse('Invalid invitation link')
+
+def join_trip_viewer_final(request, link):
+    try:
+        trip = Trip.objects.get(viewer_invitation_link=link)
+    except Trip.DoesNotExist:
+        trip = None
+
+    if trip is not None:
+        if request.user not in trip.travellers.all() or request.user not in trip.viewers.all():
+            trip.viewers.add(request.user)
+            trip.save()
+            messages.success(request, 'You have successfully joined the trip!')
+            return redirect('trip-detail', pk=trip.pk)
+        else:
+            messages.warning(request, 'You are already part of this trip!')
+            return redirect('trip-detail', pk=trip.pk)
+    else:
+        # Invalid link
+        return HttpResponse('Invalid invitation link')
+
+
 
 def LeaveTrip(request, pk):
     trip = Trip.objects.get(pk=pk)
@@ -720,6 +780,8 @@ def show_map(request, location):
         longitude = None
 
     return render(request, 'travel/map.html', {'latitude': latitude, 'longitude': longitude, 'location': location})
+
+# Like Lists
 
 def like_list(request, pk):
     instance = get_object_or_404(Comment, id=pk)

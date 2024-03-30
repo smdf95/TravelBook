@@ -1,5 +1,9 @@
 {% extends "travel/base.html" %}
 {% block content %}
+<div id="message" style="position: fixed; top: 10px; right: 10px; z-index: 9999;">
+</div>
+
+
 {% load static %}
 
 <!-- Trip Details -->
@@ -8,103 +12,137 @@
 
 
     <!-- Picture, Title, and Travellers -->
+<div class="row">
+    <div class="col-2"></div>
+    <div class="col">
 
-    <div class="d-flex">
-        <div class="p-2">
-            {% if trip.image %}
-                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ trip.image.url }}" width="200" height="200" alt="{{ trip.title }} Profile Picture">
-            {% else %}
-                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'trip_pics/default.png' %}" width="200" height="200" alt="{{ trip.title }} Profile Picture">
-            {% endif %}
-            
-        </div>
-        <div class="p-2 align-self-center d-flex">
-            <h1>{{ trip.title }}</h1>
-        </div>
-        <div class="p-2 align-self-center d-flex">
-            
-            <div class="dropdown">
-                <span class="material-symbols-outlined" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                    more_horiz
-                </span>
-                <ul class="dropdown-menu p-0" aria-labelledby="dropdownMenuButton1">
-                    {% if request.user in trip.travellers.all %}
-                        <li class="p-2 pointer hover" data-url="{% url 'trip-update' trip.id %}" onclick="redirectToUrl(this)">Update</li>
-                        <li class="p-2 pointer hover" data-url="{% url 'trip-delete' trip.id %}" onclick="redirectToUrl(this)">Delete</li>
-                    {% endif %}
-                    <li class="p-2 pointer hover" data-url="{% url 'leave-trip' trip.id %}" onclick="redirectToUrl(this)">Leave</li>
-                </ul>
+        <div class="d-flex">
+            <div class="p-2">
+                {% if trip.image %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ trip.image.url }}" width="200" height="200" alt="{{ trip.title }} Profile Picture">
+                {% else %}
+                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'trip_pics/default.png' %}" width="200" height="200" alt="{{ trip.title }} Profile Picture">
+                {% endif %}
+                
             </div>
-        </div>
-    </div>
+            <div class="d-flex align-items-start">
 
-    <!-- Travellers and Viewers -->
+                <div class="p-md-2 p-sm-1 align-self-center flex-grow-1">
+                    <h1 class="mb-2">{{ trip.title }}</h1>
+                </div>
+                
+                <div class="p-md-1 align-self-center">
+                    
+                    <div class="dropdown">
+                        <span class="material-symbols-outlined" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                            more_vert
+                        </span>
+                        <ul class="dropdown-menu p-0 mt-2" aria-labelledby="dropdownMenuButton1">
+                            {% if request.user in trip.travellers.all %}
+                                <li class="p-2 pointer hover" data-url="{% url 'trip-update' trip.id %}" onclick="redirectToUrl(this)">Update</li>
+                                <li class="p-2 pointer hover" data-url="{% url 'trip-delete' trip.id %}" onclick="redirectToUrl(this)">Delete</li>
+                            {% endif %}
+                            <li class="p-2 pointer hover" data-url="{% url 'leave-trip' trip.id %}" onclick="redirectToUrl(this)">Leave</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
     
-    <div class="d-flex mt-3 mb-3 d-flex align-items-center">
-        <div class="p-2">
-            <h4 class="m-0">Travellers:</h4>
+        <!-- Travellers and Viewers -->
+        
+        <div class="d-flex mt-3 mb-3 justify-content-between align-items-center flex-wrap">
+                <div class="p-2">
+
+                    <div class="p-2">
+                        <h4 class="m-0">Travellers:</h4>
+                    </div>
+                    <div class="p-2">
+                        {% for traveller in trip.travellers.all|slice:":5" %}
+                            {% if forloop.last and trip.travellers.count > 5 %}
+                                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ traveller.profile.image }}" width="40" height="40" alt="{{ traveller.first_name }} Profile Picture">
+                                <span class="rounded-circle account-img align-middle" style="background-color: #007bff; color: white; display: inline-block; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%;">+{{ trip.travellers.count|add:"-5" }}</span>
+                            {% else %}
+                                {% if traveller.profile.image %}
+                                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ traveller.profile.image }}" width="40" height="40" alt="{{ traveller.first_name }} Profile Picture">
+                                {% else %}
+                                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="40" height="40" alt="{{ traveller.first_name }} Profile Picture">
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                
+                <div class="p-2">
+
+                    <div class="p-2">
+                        <h4 class="m-0">Viewers:</h4>
+                    </div>
+                    <div class="p-2">
+                        {% for viewer in trip.viewers.all|slice:":2" %}
+                            {% if forloop.last and trip.viewers.count > 2 %}
+                                <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ viewer.profile.image }}" width="40" height="40" alt="{{ viewer.first_name }} Profile Picture">
+                                <span class="rounded-circle account-img align-middle" style="background-color: #007bff; color: white; display: inline-block; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%;">+{{ trip.viewers.count|add:"-2" }}</span>
+                            {% else %}
+                                {% if viewer.profile.image %}
+                                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ viewer.profile.image }}" width="40" height="40" alt="{{ viewer.first_name }} Profile Picture">
+                                {% else %}
+                                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="40" height="40" alt="{{ viewer.first_name }} Profile Picture">
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            
         </div>
-        <div class="p-2">
-
-            {% for traveller in trip.travellers.all %}
-                    {% if traveller.profile.image %}
-                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ traveller.profile.image }}" width="40" height="40" alt="{{ traveller.first_name }} Profile Picture">
-                    {% else %}
-                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="40" height="40" alt="{{ traveller.first_name }} Profile Picture">
-                    {% endif %}
-                {% endfor %}
-        </div>
-        <div class="p-2 ms-auto">
-            <h4 class="m-0">Viewers:</h4>
-        </div>
-        <div class="p-2">
-
-            {% for viewer in trip.viewers.all %}
-                    {% if viewer.profile.image %}
-                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ viewer.profile.image }}" width="40" height="40" alt="{{ viewer.first_name }} Profile Picture">
-                    {% else %}
-                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="40" height="40" alt="{{ viewer.first_name }} Profile Picture">
-                    {% endif %}
-                {% endfor %}
-        </div>
-    </div>
-
-
-
-
-    <!-- Trip Settings -->
-    {% if request.user in trip.travellers.all %}
-
-
+    
+    
+    
+    
+        <!-- Trip Settings -->
+        {% if request.user in trip.travellers.all %}
+    
+    
         <div class="p-2 d-flex align-items-center">
-            <span class="material-symbols-outlined me-2 pointer" data-url="{% url 'add-traveller' trip.id %}" onclick="redirectToUrl(this)">
+            <span class="material-symbols-outlined me-2 pointer" onclick="copyLink('{{ trip.id }}', 'add-traveller')">
                 person_add
             </span>
-            <div class="pointer" data-url="{% url 'add-traveller' trip.id %}" onclick="redirectToUrl(this)">
+            <div class="pointer" onclick="copyLink('{{ trip.id }}', 'add-traveller')">
                 Add Traveller
             </div>
         </div>
-        <div class="p-2 d-flex align-items-center">
-            <span class="material-symbols-outlined me-2 pointer" data-url="{% url 'add-viewer' trip.id %}" onclick="redirectToUrl(this)">
+        
+        <div class="p-2 d-flex align-items-center mb-5">
+            <span class="material-symbols-outlined me-2 pointer" onclick="copyLink('{{ trip.id }}', 'add-viewer')">
                 share
             </span>
-            <div class="pointer" data-url="{% url 'add-viewer' trip.id %}" onclick="redirectToUrl(this)">
+            <div class="pointer" onclick="copyLink('{{ trip.id }}', 'add-viewer')">
                 Share Trip
             </div>
-        </div>
-    {% endif %}
-</div>
+        </div>        
+        {% endif %}
+    </div>
+        <div class="col-2"></div>
+    </div>
+    </div>
 
 
 <!-- Posts List -->
 
 {% if posts %}
     {% for post in posts %}
-
-        <div class="card mt-2 mb-2">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div class="row">
+    <div class="col-md-2"></div>
+    
+    
+    <div class="col shadow p-3 mb-5 ms-2 me-2 bg-body rounded">
+        <div class="d-flex flex-wrap justify-content-between">
+    
+            <!-- Poster Profile Picture, Name, and Timestamp -->
             <div class="d-flex">
-
-                <!-- Poster Profile Picture, Name, and Timestamp -->
 
                 <div class="p-2">
                     {% if post.created_by.profile.image %}
@@ -123,92 +161,97 @@
                         {% endif %}
                     </small></div>
                 </div>
-
-                <!-- Location  -->
-
-                <div class="ms-auto p-2 d-flex">
-                    <span class="material-symbols-outlined">
-                    location_on
-                    </span>
-                    {% if post.location %}
-                        <p><a href="{% url 'maps' post.location %}">{{ post.location }}</a></p>
-                    {% else %}
-                        <p>No location provided</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Post Content and Images -->
-
-            <div class="col d-flex p-3">
-                <div class="justify-content-start">
-                    <p>{{ post.content }}</p>
-                </div>
-            </div>
-            <div class="justify-content-center ms-auto me-auto">
-                {% if post.image %}
-                    <img style="object-fit: cover; object-position: center center;" src="{{ post.image }}" class="post_image">
-                {% endif %}
-            </div>
-            
-            <!-- Likes and comments counter -->
-
-            <div class="d-flex">
-                <div class="d-flex me-auto me-5"
-                >
-                    {% include 'partials/post_likes_trip_counter.html' %}
-                </div>
         
-                {% if post.comments.count > 0 %}
-                    <div class="d-flex align-items-center ms-auto me-5">
-                        <p class="counter mb-1">{{ post.comments_num }} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
-                    </div>
-                {% endif %}
             </div>
-
-            <!-- Like and comment buttons -->
-
-            <div class="d-flex justify-content-around">
-                <div class="ms-5 ps-3 p-2 d-flex pointer" style="font-size: 14px;" 
-                hx-post="{% url 'post-like-trip' post.id %}"
-                hx-trigger="click"
-                hx-target=".body"
-                hx-swap="outerHTML">
-                    {% include 'partials/post_likes_area.html' %}
-                </div>
-
-                <div class="ml-auto p-2 d-flex pointer" data-url="{% url 'post-detail' pk=post.id %}" onclick="redirectToUrl(this)">
-                    <span class="material-symbols-outlined me-2">
-                        comment
-                    </span>
-                    <p>Comment</p>
-                </div>
-
-
-                <!-- Delete button if post was created by user -->
-
-                {% if post.created_by == user %}
-
-                    <!-- Delete button changes style on hover -->
-
-                    <div class="delete_div p-2 d-flex pointer" 
-                        onmouseover="changeIcon(this, 'delete')"
-                        onmouseout="changeIcon(this, 'delete_outline')">
-                        <span class="material-icons pointer me-1" 
-                            data-url="{% url 'post-delete' post.id %}" 
-                            onclick="redirectToUrl(this)">
-                            delete_outline
-                        </span>
-                        <p>Delete</p>
-                    </div>
+            <!-- Location  -->
+    
+            {% if post.location %}
+            <div class="p-2 d-flex">
+                <span class="material-symbols-outlined">
+                location_on
+                </span>
+                    <p class="text-muted text-sm"><a href="{% url 'maps' post.location %}">{{ post.location }}</a></p>
+                
+            </div>
                 {% endif %}
-
+        </div>
+    
+        <!-- Post Content and Images -->
+    
+        <div class="col d-flex p-3">
+            <div class="d-flex justify-content-start">
+                <p>{{ post.content }}</p>
             </div>
         </div>
-
+        <div class="d-flex justify-content-center ms-auto me-auto">
+            {% if post.image %}
+                <img style="object-fit: cover; object-position: center center;" src="{{ post.image }}" class="post_image">
+            {% endif %}
+        </div>
         
+        <!-- Likes and comments counter -->
+    
+        <div class="d-flex mt-2 mb-2">
+            <div class="d-flex me-auto me-5"
+            >
+                {% include 'partials/post_likes_trip_counter.html' %}
+            </div>
+    
+            {% if post.comments.count > 0 %}
+                <div class="d-flex align-items-center ms-auto me-5">
+                    <p class="counter mb-1 pointer" data-url="{% url 'post-detail' post.id %}" onclick="redirectToUrl(this)">{{ post.comments_num }} {% if post.comments.count == 1 %} Comment {% else %} Comments {% endif %}</p>
+                </div>
+            {% endif %}
+        </div>
+    
+        <!-- Like and comment buttons -->
+    
+        <div class="d-flex justify-content-around">
+            <div class="ps-3 p-2 d-flex pointer" style="font-size: 14px;" 
+            hx-post="{% url 'post-like-trip' post.id %}"
+            hx-trigger="click"
+            hx-target=".body"
+            hx-swap="outerHTML">
+                {% include 'partials/post_likes_area.html' %}
+            </div>
+    
+            <!-- Comment button opens and closes comment form -->
+    
+            <div class="ml-auto p-2 d-flex pointer comment-button"
+            data-url="{% url 'post-detail' pk=post.id %}" onclick="redirectToUrl(this)">
+                <span class="material-symbols-outlined me-2">
+                    comment
+                </span>
+                <p>Comment</p>
+            </div>
+    
+    
+            <!-- Delete button if post was created by user -->
+    
+            {% if post.created_by == user %}
+    
+                <!-- Delete button changes style on hover -->
+    
+                <div class="delete_div p-2 d-flex pointer" 
+                    onmouseover="changeIcon(this, 'delete')"
+                    onmouseout="changeIcon(this, 'delete_outline')">
+                    <span class="material-icons pointer me-1" 
+                        data-url="{% url 'post-delete' post.id %}" 
+                        onclick="redirectToUrl(this)">
+                        delete_outline
+                    </span>
+                    <p>Delete</p>
+                </div>
+            {% endif %}
+    
+        </div>
+    </div>
+    <div class="col-md-2"></div>
+    
+    
+</div>
     {% endfor %}
-{% endif %}
+    {% endif %}
         <div class="like_list post_like_list d-none position-fixed top-50 start-50 translate-middle">
 
         </div>
@@ -222,4 +265,70 @@
         </span>
     </div>
 {% endif %}
+
+<script>
+    function copyLink(tripId, action) {
+        let url;
+        
+        if (action === 'add-traveller') {
+            url = `/trip/${tripId}/create-traveller/`;
+        } else if (action === 'add-viewer') {
+            url = `/trip/${tripId}/create-viewer/`;
+        } else {
+            showMessage('Invalid action!', 'alert-danger');
+            return;
+        }
+    
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const link = data.link;
+            navigator.clipboard.writeText(link);
+            showMessage('Link copied to clipboard!', 'alert-success');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('Error creating link!', 'alert-danger');
+        });
+    }
+    
+    function showMessage(message, alertClass) {
+        const messageDiv = document.getElementById('message');
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            ${message}
+        `;
+        
+        messageDiv.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.style.display = 'none';
+        }, 5000);
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
 {% endblock content %}

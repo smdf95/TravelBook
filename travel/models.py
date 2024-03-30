@@ -18,6 +18,8 @@ class Trip(models.Model):
     
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_trips')
     created_on = models.DateTimeField(auto_now_add=True, editable=False)
+    traveller_invitation_link = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    viewer_invitation_link = models.CharField(max_length=10, unique=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # Check if the object already exists (updating) and if an image has been uploaded

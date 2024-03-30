@@ -3,23 +3,24 @@
 
 <div class="">
 
-    <div class="card mb-2 ms-5 reply_{{ reply.id}}">
+    <div class="shadow p-2 bg-body rounded mb-2 ms-5 reply_{{ reply.id}}">
     
         <!-- Commenter's profile picture, name, and comment timestamp -->
-    
-        <div class="d-flex justify-content-start">
-            <div class="p-2">
-                {% if reply.created_by.profile.image %}
-                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ reply.created_by.profile.image }}" width="50" height="50" alt="{{ reply.created_by.first_name }} Profile Picture">
-                {% else %}
-                    <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ reply.created_by.first_name }} Profile Picture">
-                {% endif %}
+        <div class="d-flex flex-wrap justify-content-between">
+            <div class="d-flex justify-content-start">
+                <div class="p-2">
+                    {% if reply.created_by.profile.image %}
+                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{{ reply.created_by.profile.image }}" width="50" height="50" alt="{{ reply.created_by.first_name }} Profile Picture">
+                    {% else %}
+                        <img style="border-radius: 50%; object-fit: cover; object-position: center center;" class="rounded-circle account-img" src="{% static 'profile_pics/default.png' %}" width="50" height="50" alt="{{ reply.created_by.first_name }} Profile Picture">
+                    {% endif %}
+                </div>
+                <div class="ms-4 align-self-center">
+                    <p class="fw-bold mb-1">{{ reply.created_by.first_name }} {{ reply.created_by.last_name }}</p>
+                    <p>{{ reply.content }}</p>
+                </div>
             </div>
-            <div class="ms-4 align-self-center">
-                <p class="fw-bold mb-1">{{ reply.created_by.first_name }} {{ reply.created_by.last_name }}</p>
-                <p>{{ reply.content }}</p>
-            </div>
-            <p class="text-muted align-self-center ms-auto me-5">
+            <p class="text-muted align-self-center p-2 d-flex">
                 {% if reply.time_diff %}
                     {{ reply.time_diff }}
                 {% else %}
@@ -29,11 +30,11 @@
 
             </p>
         </div>
-        
+            
         <!-- Like and reply buttons -->
     
         <div class="d-flex justify-content-around">
-            <div class="ms-5 ps-3 p-2 d-flex pointer" style="font-size: 14px;" 
+            <div class="ms-5 mb-0 ps-3 p-2 d-flex pointer" style="font-size: 14px;" 
             hx-post="{% url 'reply-like' reply.id %}"
             hx-trigger="click"
             hx-target=".like_reply_{{ reply.id }}"
@@ -42,7 +43,7 @@
             </div>
             {% if request.user == comment.created_by %}
                 <div class="ps-3 p-2"  style="font-size: 14px;">
-                    <p class="pointer" 
+                    <p class="pointer m-0" 
                     hx-delete="{% url 'comment-delete' comment.id %}"
                     hx-trigger="click"
                     hx-target="#comment_list"

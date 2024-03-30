@@ -1,0 +1,22 @@
+{% extends 'travel/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Invitation to Join the Trip</div>
+
+                <div class="card-body">
+                    <h5 class="card-title">You've been invited!</h5>
+                    <p class="card-text">You have been invited to join the trip "{{ trip.title }}"</p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'join-trip-final' link=link %}" class="btn btn-primary">Join Trip</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

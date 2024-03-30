@@ -73,14 +73,10 @@ class AddTravellerForm(forms.ModelForm):
         model = Trip
         fields = ['travellers']
 
-
-    def clean_email(self):
+    def clean_travellers(self):
         email = self.cleaned_data['travellers']
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise forms.ValidationError("This email does not belong to any user.")
-        return user.pk
+        return email  # Return the cleaned email
+
     
 
 class AddViewerForm(forms.ModelForm):
@@ -180,7 +176,7 @@ class ReplyForm(forms.ModelForm):
             'class': 'form-control',
             'placeholder': 'Enter your reply here...',
             'rows': 2,
-            'cols': 150,
+            'cols': 250,
             'style': 'resize:none;'
         })
 

@@ -11,7 +11,7 @@
     bottom: 20px;
     right: 35px;
     font-size: 50px;
-    color: #06367A;
+    color: #191970;
     cursor: pointer;
     text-shadow: #777777 2px 2px 5px;
     transition: all 200ms ease-in-out;
@@ -102,4 +102,17 @@
 
 .hover:hover {
     background-color: rgba(100, 100, 100, 0.5); /* Darkening effect */
+}
+
+@media (max-width: 576px) { /* Small devices (576px and below) */
+    .material-symbols-outlined.add {
+        right: -30px; /* Adjust this value to move it more to the right */
+    }
+
+    .material-symbols-outlined.add:hover {
+        
+        right: -20px;
+        
+    
+    }
 }
